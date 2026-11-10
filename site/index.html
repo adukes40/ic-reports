@@ -71,6 +71,11 @@ h1 { margin: 0; font: 400 clamp(32px, 4vw, 44px)/1.1 var(--font-head); color: va
 .card p { margin: 0; color: #333; flex-grow: 1; }
 .card .foot { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; }
 
+/* kind filter */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { min-height: 40px; padding: 0 14px; border: 2px solid var(--blue); border-radius: 4px; background: #fff; color: var(--blue); font-weight: 700; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--blue); color: #fff; }
+
 /* sections + rows */
 .crumbs { display: flex; flex-wrap: wrap; gap: 8px; font-size: 15px; }
 .cat-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
@@ -78,7 +83,8 @@ h1 { margin: 0; font: 400 clamp(32px, 4vw, 44px)/1.1 var(--font-head); color: va
 .section { display: flex; flex-direction: column; }
 .section h2 { margin: 0; padding-bottom: 10px; border-bottom: 3px solid var(--blue); font: 400 26px/1.2 var(--font-head); color: var(--blue); display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; }
 .section h2 small { font: 15px var(--font-ui); color: var(--ink); margin-left: auto; }
-.section h3 { margin: 20px 0 0; padding-bottom: 6px; border-bottom: 1px solid var(--line-2); font-size: 17px; }
+.section h3 { margin: 28px 0 0; padding: 10px 12px; background: var(--soft); border-bottom: 2px solid var(--gold); font-size: 18px; display: flex; gap: 10px; align-items: baseline; }
+.section h3 small { font-weight: 400; color: var(--muted); font-size: 15px; }
 .item { border-bottom: 1px solid var(--line); }
 .row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; padding: 16px 12px; border: 0; background: transparent; text-align: left; cursor: pointer; }
 .row:hover { background: #fafafa; }
@@ -136,7 +142,16 @@ const KW = new Set("select from where join left right inner outer cross apply on
 const FN = new Set("row_number count sum max min convert cast isnull coalesce nullif ltrim rtrim datediff dateadd getdate string_agg patindex len upper lower replace".split(" "));
 
 let DATA = [], CATS = [];
-const st = { view: "home", cat: null, open: null, q: "", catQ: "" };
+const st = { view: "home", cat: null, open: null, q: "", catQ: "", kind: "all" };
+const KIND_ORDER = ["Validation", "List", "KPI", "Vendor pull"];
+const kindOf = d => (d.type || "").split(" · ")[0].trim() || "Other";
+const kindOk = d => st.kind === "all" || kindOf(d) === st.kind;
+function chipsHTML(pool) {
+  const kinds = [...new Set(pool.map(kindOf))].sort((a, b) => (KIND_ORDER.indexOf(a) + 1 || 99) - (KIND_ORDER.indexOf(b) + 1 || 99));
+  if (kinds.length < 2) return "";
+  const btn = (k, label, n) => `<button class="chip" type="button" data-kind="${esc(k)}" aria-pressed="${st.kind === k}">${esc(label)} · ${n}</button>`;
+  return `<div class="chips" role="group" aria-label="Filter by kind of query">${btn("all", "All", pool.length)}${kinds.map(k => btn(k, k === "List" ? "Lists" : k === "KPI" ? "KPIs" : k === "Validation" ? "Validations" : k, pool.filter(d => kindOf(d) === k).length)).join("")}</div>`;
+}
 const app = document.getElementById("app");
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const words = q => q.toLowerCase().split(/\s+/).filter(Boolean);
@@ -165,7 +180,7 @@ function itemHTML(d) {
     </button>`;
   if (open) {
     const when = (d.type.match(/Run (.+)$/) || [])[1];
-    const facts = [["When to run", when], ["Output", d.output], ["Parameters", d.params && `<code>${esc(d.params)}</code>`, true], ["Tables", d.tables],
+    const facts = [["Kind", kindOf(d)], ["When to run", when], ["Output", d.output], ["Parameters", d.params && `<code>${esc(d.params)}</code>`, true], ["Tables", d.tables],
       ...Object.entries(d.extra || {})].filter(f => f[1]);
     const lines = hl(d.sql.replace(/\n+$/, "")).split("\n");
     html += `<div class="detail">
@@ -182,17 +197,26 @@ function itemHTML(d) {
   return html + `</div>`;
 }
 
+const PLURAL = { "Validation": "Validations", "List": "Lists", "KPI": "KPIs", "Vendor pull": "Vendor pulls" };
+const rank = k => KIND_ORDER.indexOf(k) + 1 || 99;
+// Vendor queries group by vendor; everything else groups by kind (Validations, Lists, KPIs).
+const groupOf = d => d.group || PLURAL[kindOf(d)] || kindOf(d);
 function listHTML(items) {
+  const sorted = items.slice().sort((a, b) => (a.group || "").localeCompare(b.group || "") || rank(kindOf(a)) - rank(kindOf(b)));
+  const counts = {}; sorted.forEach(d => counts[groupOf(d)] = (counts[groupOf(d)] || 0) + 1);
+  const many = Object.keys(counts).length > 1;
   let html = "", group = null;
-  for (const d of items) {
-    if (d.group && d.group !== group) { html += `<h3>${esc(d.group)}</h3>`; group = d.group; }
+  for (const d of sorted) {
+    const g = groupOf(d);
+    if (many && g !== group) { html += `<h3>${esc(g)} <small>${counts[g]}</small></h3>`; group = g; }
     html += itemHTML(d);
   }
   return html;
 }
 
 function homeView() {
-  const results = st.q ? DATA.filter(d => hits(d, st.q)) : [];
+  const found = st.q ? DATA.filter(d => hits(d, st.q)) : [];
+  const results = found.filter(kindOk);
   const cards = CATS.map(c => {
     const qs = DATA.filter(d => d.cat === c.key), n = qs.length;
     return `<a class="card" href="#${c.key}">
@@ -202,7 +226,7 @@ function homeView() {
   }).join("");
   let res = "";
   if (st.q) {
-    res = `<p class="muted" role="status" style="margin:0">${results.length} ${results.length === 1 ? "query matches" : "queries match"} “${esc(st.q)}”</p>`;
+    res = `<p class="muted" role="status" style="margin:0">${results.length} ${results.length === 1 ? "query matches" : "queries match"} “${esc(st.q)}”</p>${chipsHTML(found)}`;
     for (const c of CATS) {
       const inCat = results.filter(d => d.cat === c.key);
       if (inCat.length) res += `<section class="section"><h2>${esc(c.label)} <small>${inCat.length} found</small></h2>${listHTML(inCat)}</section>`;
@@ -223,7 +247,8 @@ function catView() {
   const c = CATS.find(x => x.key === st.cat);
   if (!c) { st.view = "home"; return homeView(); }
   const all = DATA.filter(d => d.cat === c.key);
-  const shown = all.filter(d => hits(d, st.catQ));
+  const found = all.filter(d => hits(d, st.catQ));
+  const shown = found.filter(kindOk);
   return `
     <nav class="crumbs" aria-label="Breadcrumb"><a href="#">All categories</a><span aria-hidden="true">/</span><span>${esc(c.label)}</span></nav>
     <div class="cat-head">
@@ -232,9 +257,10 @@ function catView() {
     </div>
     <div class="search"><label for="cq">Search in ${esc(c.label)}</label>
       <input id="cq" class="small" type="search" placeholder="Name, table or column" value="${esc(st.catQ)}" autocomplete="off"></div>
+    ${chipsHTML(found)}
     <section class="section">
       <h2>Queries <small>${shown.length === all.length ? all.length + " queries" : shown.length + " of " + all.length + " shown"}</small></h2>
-      ${shown.length ? listHTML(shown) : `<p class="empty">${all.length ? "Nothing matches. Try fewer words." : "No queries here yet."}</p>`}
+      ${shown.length ? listHTML(shown) : `<p class="empty">${all.length ? "Nothing matches. Try fewer words or pick All." : "No queries here yet."}</p>`}
     </section>`;
 }
 
@@ -246,8 +272,8 @@ function render(focusId) {
 function route() {
   const h = decodeURIComponent(location.hash.slice(1));
   const q = DATA.find(d => "q-" + d.id === h);
-  if (q) { st.view = "cat"; st.cat = q.cat; st.open = q.id; st.catQ = ""; }
-  else if (CATS.some(c => c.key === h)) { if (st.cat !== h) { st.catQ = ""; st.open = null; } st.view = "cat"; st.cat = h; }
+  if (q) { st.view = "cat"; st.cat = q.cat; st.open = q.id; st.catQ = ""; st.kind = "all"; }
+  else if (CATS.some(c => c.key === h)) { if (st.cat !== h) { st.catQ = ""; st.open = null; st.kind = "all"; } st.view = "cat"; st.cat = h; }
   else { st.view = "home"; }
   render();
   if (q) { const el = document.getElementById("q-" + q.id); if (el) el.scrollIntoView({ block: "start" }); } else window.scrollTo(0, 0);
@@ -265,6 +291,8 @@ app.addEventListener("click", e => {
     render(); const el = document.getElementById("q-" + id); if (el && el.getBoundingClientRect().top < 0) el.scrollIntoView({ block: "start" });
     return;
   }
+  const kind = e.target.closest("[data-kind]");
+  if (kind) { st.kind = kind.dataset.kind; render(); return; }
   const copy = e.target.closest("[data-copy]");
   if (copy) {
     const d = DATA.find(x => x.id === copy.dataset.copy), msg = copy.parentElement.querySelector(".copied");
@@ -272,7 +300,7 @@ app.addEventListener("click", e => {
       .catch(() => { const r = document.createRange(); r.selectNodeContents(copy.closest(".code").querySelector(".code-body")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); msg.textContent = "Selected. Press Ctrl+C"; });
   }
 });
-document.getElementById("home").addEventListener("click", () => { st.q = ""; location.hash = ""; route(); });
+document.getElementById("home").addEventListener("click", () => { st.q = ""; st.kind = "all"; location.hash = ""; route(); });
 window.addEventListener("hashchange", route);
 const req = document.getElementById("reqBtn");
 if (REQUEST_URL) req.href = REQUEST_URL;
