@@ -24,6 +24,18 @@ def folder_label(folder: pathlib.Path) -> str:
     return folder.name.split("-", 1)[-1].replace("-", " ").title()
 
 
+def folder_blurb(folder: pathlib.Path) -> str:
+    """First sentence of the first paragraph under the README heading."""
+    readme = folder / "README.md"
+    if not readme.exists():
+        return ""
+    for line in readme.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith(("#", "|", "[", "Open a query")):
+            return re.split(r"(?<=\.)\s", line, maxsplit=1)[0]
+    return ""
+
+
 def parse(path: pathlib.Path) -> dict:
     text = path.read_text(encoding="utf-8")
     if not text.lstrip().startswith("/*") or "*/" not in text:
@@ -75,7 +87,7 @@ def main() -> int:
         return 1
     cats = []
     for folder in sorted(p for p in QUERIES.iterdir() if p.is_dir()):
-        cats.append({"key": folder.name, "label": folder_label(folder)})
+        cats.append({"key": folder.name, "label": folder_label(folder), "blurb": folder_blurb(folder)})
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text(json.dumps({"categories": cats, "queries": items}, ensure_ascii=False), encoding="utf-8")
     print(f"Wrote {len(items)} queries in {len(cats)} categories to {OUT.relative_to(ROOT)}")
