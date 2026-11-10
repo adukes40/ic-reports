@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IC Reports</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap">
+<style>
+/* Layout: app shell. Top bar, filter rail on the left, query list in the middle, detail pane on the right; stacks on phones. */
+:root {
+  --bg: #f4f6f8; --surface: #ffffff; --sunk: #eef1f4; --ink: #17212b; --muted: #5b6875; --line: #d9dfe5;
+  --accent: #1f5f8b; --accent-soft: #e3eef6; --code-bg: #f7f9fb; --gutter-ink: #8a96a2;
+  --good: #2f7d4a; --good-bg: #e2f2e7; --review: #9a6a00; --review-bg: #fbf0d4;
+  --notrun: #66717c; --notrun-bg: #eceff2; --broken: #b3362f; --broken-bg: #f8e1df;
+  --kw: #1f5f8b; --str: #8a4b12; --com: #6b7780; --num: #2f7d4a; --fn: #6a3d9a;
+  --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-head: "IBM Plex Sans Condensed", "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #11171d; --surface: #182129; --sunk: #141c23; --ink: #e4eaf0; --muted: #94a2af; --line: #2a3640;
+  --accent: #6cb2e0; --accent-soft: #1d3446; --code-bg: #121a21; --gutter-ink: #5f6d79;
+  --good: #6fcf8f; --good-bg: #183327; --review: #e8b84a; --review-bg: #352a12;
+  --notrun: #a3aeb8; --notrun-bg: #232d36; --broken: #f08a82; --broken-bg: #3a1c1a;
+  --kw: #7fbde6; --str: #e0a56b; --com: #7d8a96; --num: #7fd49b; --fn: #c4a1ec; color-scheme: dark; } }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--font-ui); }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.top { background: var(--surface); border-bottom: 1px solid var(--line); }
+.top-in { display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; padding: 12px max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left)); }
+.brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; flex-wrap: wrap; }
+.brand h1 { margin: 0; font: 600 20px/1 var(--font-head); letter-spacing: .01em; }
+.brand span { color: var(--muted); font-size: 13px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 7px 12px; cursor: pointer; font-weight: 500; text-decoration: none; color: var(--ink); font-size: 13px; white-space: nowrap; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.btn.primary:hover { filter: brightness(1.08); }
+
+.shell { display: grid; grid-template-columns: 230px minmax(0, 360px) minmax(0, 1fr); min-height: calc(100vh - 60px); }
+.rail { border-right: 1px solid var(--line); padding: 16px; display: flex; flex-direction: column; gap: 20px; }
+.rail h2 { margin: 0 0 6px; font: 600 11px/1 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.facet { display: flex; flex-direction: column; gap: 2px; }
+.facet button { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; border: 0; background: none; padding: 6px 8px; border-radius: 6px; cursor: pointer; }
+.facet button:hover { background: var(--sunk); }
+.facet button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.facet .n { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; font-weight: 400; }
+.dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: currentColor; }
+.rail-note { font-size: 12px; color: var(--muted); line-height: 1.45; margin: 0; }
+.rail-dl { display: flex; flex-direction: column; gap: 6px; }
+
+.list { border-right: 1px solid var(--line); display: flex; flex-direction: column; min-width: 0; }
+.search { padding: 12px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.search input { width: 100%; padding: 9px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
+.search .hint { margin-top: 6px; font-size: 12px; color: var(--muted); }
+.rows { overflow-y: auto; flex: 1; max-height: calc(100vh - 150px); }
+.row { display: grid; grid-template-columns: 38px 1fr; gap: 4px 8px; padding: 11px 14px; border: 0; border-bottom: 1px solid var(--line); border-left: 3px solid transparent; cursor: pointer; background: none; width: 100%; text-align: left; }
+.row:hover { background: var(--sunk); }
+.row[aria-current="true"] { background: var(--surface); border-left-color: var(--accent); }
+.row .num { font: 500 12px/1.6 var(--font-mono); color: var(--muted); }
+.row .nm { font-weight: 600; }
+.row .meta { grid-column: 2; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.empty { padding: 24px 16px; color: var(--muted); }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 1px 8px 1px 7px; border-radius: 999px; white-space: nowrap; }
+.s-good { color: var(--good); background: var(--good-bg); } .s-review { color: var(--review); background: var(--review-bg); }
+.s-notrun { color: var(--notrun); background: var(--notrun-bg); } .s-broken { color: var(--broken); background: var(--broken-bg); }
+
+.detail { padding: 20px 24px 40px; min-width: 0; background: var(--surface); }
+.crumb { font-size: 12px; color: var(--muted); }
+.dtitle { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 4px 0; }
+.dtitle h2 { margin: 0; font: 600 24px/1.2 var(--font-head); text-wrap: balance; }
+.dtitle .qn { font: 500 15px/1 var(--font-mono); color: var(--muted); }
+.lede { margin: 0 0 16px; max-width: 70ch; font-size: 15px; }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0 0 16px; padding: 14px 16px; background: var(--sunk); border-radius: 8px; max-width: 980px; }
+.facts dt { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; padding-top: 2px; }
+.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.facts code { font: 13px var(--font-mono); }
+.check { border-left: 3px solid var(--review); background: var(--review-bg); padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 0 0 18px; max-width: 980px; }
+.check b { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px; color: var(--review); }
+
+.codebox { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--code-bg); max-width: 1180px; }
+.codebar { display: flex; align-items: center; gap: 8px 10px; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--line); background: var(--sunk); flex-wrap: wrap; }
+.codebar .file { font: 12px var(--font-mono); color: var(--muted); margin-right: auto; overflow-wrap: anywhere; min-width: 0; }
+.copied { font-size: 12px; color: var(--good); font-weight: 600; }
+.code-wrap { overflow-x: auto; }
+table.code { border-collapse: collapse; font: 12.5px/20px var(--font-mono); width: 100%; tab-size: 4; }
+table.code td.ln { width: 1%; padding: 0 10px 0 14px; text-align: right; color: var(--gutter-ink); user-select: none; vertical-align: top; }
+table.code td.lc { padding: 0 16px 0 6px; white-space: pre; }
+table.code tr:first-child td { padding-top: 10px; } table.code tr:last-child td { padding-bottom: 10px; }
+.k { color: var(--kw); font-weight: 500; } .s { color: var(--str); } .c { color: var(--com); font-style: italic; } .d { color: var(--num); } .f, .v { color: var(--fn); }
+
+dialog { border: 1px solid var(--line); border-radius: 10px; padding: 20px; width: min(460px, calc(100vw - 32px)); background: var(--surface); color: var(--ink); }
+dialog::backdrop { background: rgba(10, 20, 30, .45); }
+dialog h3 { margin: 0 0 8px; font: 600 18px var(--font-head); }
+
+@media (max-width: 1000px) {
+  .shell { grid-template-columns: minmax(0, 300px) minmax(0, 1fr); }
+  .rail { grid-column: 1 / -1; border-right: 0; border-bottom: 1px solid var(--line); flex-direction: row; flex-wrap: wrap; gap: 16px; }
+  .facet { flex-direction: row; flex-wrap: wrap; } .facet button { width: auto; }
+  .rail-note { display: none; }
+}
+@media (max-width: 680px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .list { border-right: 0; } .rows { max-height: 320px; }
+  .detail { padding: 16px; border-top: 1px solid var(--line); }
+  .facts { grid-template-columns: 1fr; gap: 2px; } .facts dd { margin-bottom: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div class="brand"><h1>IC Reports</h1><span>Infinite Campus SQL, ready to paste into Data Extract</span></div>
+  <a class="btn" href="ic-reports-all.zip" download>Download all</a>
+  <a class="btn primary" id="reqBtn" href="#" target="_blank" rel="noopener">Request a query</a>
+</div></header>
+
+<main class="shell">
+  <aside class="rail" aria-label="Filters">
+    <div><h2>Category</h2><div class="facet" id="catFacet"></div></div>
+    <div id="groupBox" hidden><h2 id="groupTitle">Vendor</h2><div class="facet" id="groupFacet"></div></div>
+    <div><h2>Status</h2><div class="facet" id="stFacet"></div></div>
+    <div id="catDl" class="rail-dl"></div>
+    <p class="rail-note">Open a query, click <b>Copy SQL</b>, and paste it into IC's data extract tool. Change values in the PARAMETERS block to run one school or a different date.</p>
+  </aside>
+
+  <section class="list" aria-label="Queries">
+    <div class="search">
+      <input id="q" type="search" placeholder="Search names, purpose, tables or SQL" autocomplete="off" aria-label="Search queries">
+      <div class="hint" id="count">Loading queries…</div>
+    </div>
+    <div class="rows" id="rows"></div>
+  </section>
+
+  <article class="detail" id="detail" aria-live="polite"></article>
+</main>
+
+<dialog id="noForm"><h3>Request form not set up yet</h3><p>Ask the technology office to add the Google Form link in <code>site/index.html</code> (the <code>REQUEST_URL</code> line).</p><form method="dialog"><button class="btn primary">OK</button></form></dialog>
+
+<script>
+// Set this to your Google Form link.
+const REQUEST_URL = "";
+
+const STAT = { "Confirmed good": "good", "Needs review": "review", "Not run yet": "notrun", "Broken": "broken" };
+const STATS = ["all", "Confirmed good", "Needs review", "Not run yet", "Broken"];
+let DATA = [], CATS = [];
+let state = { cat: "all", group: "all", st: "all", q: "", sel: null };
+try { const s = JSON.parse(localStorage.getItem("icreports") || "{}"); if (s.cat) state.cat = s.cat; if (s.st) state.st = s.st; } catch (e) {}
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const pill = s => `<span class="pill s-${STAT[s] || "notrun"}"><span class="dot"></span>${esc(s)}</span>`;
+
+function matches(d, skip = {}) {
+  if (!skip.cat && state.cat !== "all" && d.cat !== state.cat) return false;
+  if (!skip.group && state.group !== "all" && d.group !== state.group) return false;
+  if (!skip.st && state.st !== "all" && d.status !== state.st) return false;
+  if (!state.q) return true;
+  const hay = [d.num, d.name, d.group, d.purpose, d.tables, d.output, Object.values(d.extra).join(" "), d.sql].join(" ").toLowerCase();
+  return state.q.toLowerCase().split(/\s+/).filter(Boolean).every(w => hay.includes(w));
+}
+
+function facets() {
+  $("catFacet").innerHTML = [{ key: "all", label: "All queries" }, ...CATS].map(c =>
+    `<button type="button" data-cat="${c.key}" aria-pressed="${state.cat === c.key}">${esc(c.label)}<span class="n">${DATA.filter(d => (c.key === "all" || d.cat === c.key) && matches(d, { cat: 1, group: 1 })).length}</span></button>`).join("");
+  const groups = [...new Set(DATA.filter(d => d.cat === state.cat && d.group).map(d => d.group))].sort();
+  $("groupBox").hidden = !groups.length;
+  $("groupFacet").innerHTML = ["all", ...groups].map(g =>
+    `<button type="button" data-group="${esc(g)}" aria-pressed="${state.group === g}">${g === "all" ? "All" : esc(g)}<span class="n">${DATA.filter(d => d.cat === state.cat && (g === "all" || d.group === g) && matches(d, { group: 1 })).length}</span></button>`).join("");
+  $("stFacet").innerHTML = STATS.map(s =>
+    `<button type="button" data-st="${s}" aria-pressed="${state.st === s}">${s === "all" ? "" : `<span class="pill s-${STAT[s]}" style="padding:0;background:none"><span class="dot"></span></span>`}${s === "all" ? "Any status" : s}<span class="n">${DATA.filter(d => (s === "all" || d.status === s) && matches(d, { st: 1 })).length}</span></button>`).join("");
+  const cat = CATS.find(c => c.key === state.cat);
+  $("catDl").innerHTML = cat ? `<a class="btn" href="${cat.key}.zip" download>Download ${esc(cat.label)}</a>` : "";
+}
+
+function list() {
+  const hits = DATA.filter(d => matches(d));
+  $("count").textContent = hits.length === DATA.length ? `${hits.length} queries` : `${hits.length} of ${DATA.length} queries`;
+  if (!hits.length) { $("rows").innerHTML = `<div class="empty">No queries match. Try fewer words, or clear the filters on the left.</div>`; return hits; }
+  $("rows").innerHTML = hits.map(d => `<button type="button" class="row" data-id="${d.id}" aria-current="${state.sel === d.id}">
+    <span class="num">#${d.num}</span><span class="nm">${esc(d.name)}</span>
+    <span class="meta">${pill(d.status)}<span>${esc(d.group || d.catLabel)}</span></span></button>`).join("");
+  return hits;
+}
+
+const KW = new Set("select from where join left right inner outer cross apply on and or not in is null as with case when then else end order by group having distinct top declare int date varchar union all exists over partition desc asc between like set into values collate".split(" "));
+const FN = new Set("row_number count sum max min convert cast isnull coalesce nullif ltrim rtrim datediff dateadd getdate string_agg patindex len upper lower replace".split(" "));
+function hl(sql) {
+  const re = /(--[^\n]*|\/\*[\s\S]*?\*\/)|('(?:[^']|'')*')|(@\w+)|(\b\d+(?:\.\d+)?\b)|(\b[A-Za-z_]+\b)/g;
+  const wrap = (cls, t) => t.split("\n").map(p => `<span class="${cls}">${esc(p)}</span>`).join("\n");
+  let out = "", last = 0, m;
+  while ((m = re.exec(sql))) {
+    out += esc(sql.slice(last, m.index));
+    const t = m[0], l = t.toLowerCase();
+    out += m[1] ? wrap("c", t) : m[2] ? wrap("s", t) : m[3] ? `<span class="v">${t}</span>` : m[4] ? `<span class="d">${t}</span>`
+         : KW.has(l) ? `<span class="k">${t}</span>` : FN.has(l) ? `<span class="f">${t}</span>` : t;
+    last = re.lastIndex;
+  }
+  return out + esc(sql.slice(last));
+}
+
+function detail() {
+  const d = DATA.find(x => x.id === state.sel);
+  if (!d) { $("detail").innerHTML = `<div class="empty">Pick a query on the left to see what it finds and copy its SQL.</div>`; return; }
+  const rows = [["Output", esc(d.output)], ["Parameters", `<code>${esc(d.params)}</code>`], ["Tables", esc(d.tables)],
+    ...Object.entries(d.extra).map(([k, v]) => [esc(k), esc(v)])].filter(r => r[1] && r[1] !== "<code></code>");
+  const lines = hl(d.sql.replace(/\n+$/, "")).split("\n");
+  $("detail").innerHTML = `
+    <div class="crumb">${esc(d.catLabel)}${d.group ? " · " + esc(d.group) : ""}${d.type ? " · " + esc(d.type) : ""}</div>
+    <div class="dtitle"><span class="qn">#${d.num}</span><h2>${esc(d.name)}</h2>${pill(d.status)}</div>
+    <p class="lede">${esc(d.purpose)}</p>
+    <dl class="facts">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>
+    ${d.check ? `<div class="check"><b>Check before running</b>${esc(d.check)}</div>` : ""}
+    <div class="codebox">
+      <div class="codebar"><span class="file">${esc(d.file)}</span><span class="copied" id="copied" hidden>Copied</span>
+        <a class="btn" href="${esc(d.file)}" download>Download .sql</a>
+        <button class="btn primary" type="button" id="copyBtn">Copy SQL</button></div>
+      <div class="code-wrap"><table class="code" id="sql"><tbody>${lines.map((l, i) => `<tr><td class="ln">${i + 1}</td><td class="lc">${l || " "}</td></tr>`).join("")}</tbody></table></div>
+    </div>`;
+  $("copyBtn").onclick = () => {
+    const c = $("copied");
+    navigator.clipboard.writeText(d.sql).then(() => { c.textContent = "Copied"; c.hidden = false; setTimeout(() => { if ($("copied")) $("copied").hidden = true; }, 1800); })
+      .catch(() => { const r = document.createRange(); r.selectNodeContents(document.querySelector("#sql tbody")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); c.textContent = "Selected. Press Ctrl+C"; c.hidden = false; });
+  };
+}
+
+function render(keepSel) {
+  facets();
+  const hits = list();
+  if (!keepSel || !hits.some(h => h.id === state.sel)) state.sel = hits[0] ? hits[0].id : null;
+  document.querySelectorAll(".row").forEach(r => r.setAttribute("aria-current", r.dataset.id === state.sel));
+  detail();
+  try { localStorage.setItem("icreports", JSON.stringify({ cat: state.cat, st: state.st })); } catch (e) {}
+}
+
+function pick(id) { state.sel = id; document.querySelectorAll(".row").forEach(r => r.setAttribute("aria-current", r.dataset.id === id)); detail(); }
+$("catFacet").onclick = e => { const b = e.target.closest("button"); if (b) { state.cat = b.dataset.cat; state.group = "all"; render(true); } };
+$("groupFacet").onclick = e => { const b = e.target.closest("button"); if (b) { state.group = b.dataset.group; render(true); } };
+$("stFacet").onclick = e => { const b = e.target.closest("button"); if (b) { state.st = b.dataset.st; render(true); } };
+$("q").oninput = e => { state.q = e.target.value.trim(); render(true); };
+$("rows").onclick = e => { const b = e.target.closest(".row"); if (b) { pick(b.dataset.id); history.replaceState(null, "", "#" + b.dataset.id); } };
+window.addEventListener("hashchange", () => { const id = location.hash.slice(1); if (DATA.some(d => d.id === id)) { state.cat = "all"; state.group = "all"; state.st = "all"; state.sel = id; render(true); } });
+if (REQUEST_URL) $("reqBtn").href = REQUEST_URL; else $("reqBtn").onclick = e => { e.preventDefault(); $("noForm").showModal(); };
+
+fetch("queries.json", { cache: "no-cache" }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => {
+  DATA = j.queries; CATS = j.categories;
+  if (!CATS.some(c => c.key === state.cat)) state.cat = "all";
+  const start = location.hash.slice(1);
+  if (DATA.some(d => d.id === start)) { state.cat = "all"; state.st = "all"; state.sel = start; }
+  render(!!state.sel);
+}).catch(() => { $("count").textContent = "Couldn't load the query list. Refresh the page; if it keeps happening, the site build may have failed."; });
+</script>
+</body>
+</html>

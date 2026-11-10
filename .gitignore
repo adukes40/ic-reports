@@ -1,0 +1,4 @@
+site/queries.json
+site/queries/
+site/*.zip
+__pycache__/
