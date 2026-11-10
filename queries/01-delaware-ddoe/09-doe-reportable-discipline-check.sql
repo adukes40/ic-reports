@@ -1,7 +1,7 @@
 /* ======================================================================================
    #9  DOE-reportable discipline check
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Broken
    Category:  Delaware DOE
    Type:      Validation · Priority 1 · Run Monthly
    Purpose:   On state-coded behavior events: offenders with no resolution, suspensions

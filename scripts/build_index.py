@@ -1,10 +1,13 @@
-"""Build site/queries.json from the header block at the top of every queries/**/*.sql file.
+"""Build site/queries.json from the header block at the top of every queries/**/*.sql file,
+and copy the published .sql files into site/queries/. Queries marked "Status: Broken" stay
+in the repo but are left off the site.
 
 Run by the GitHub Action on every push; run it locally with `python scripts/build_index.py`.
 """
 import json
 import pathlib
 import re
+import shutil
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -80,6 +83,8 @@ def parse(path: pathlib.Path) -> dict:
 
 def main() -> int:
     items = [parse(p) for p in sorted(QUERIES.rglob("*.sql"))]
+    hidden = [i["file"] for i in items if i["status"] == "Broken"]
+    items = [i for i in items if i["status"] != "Broken"]
     ids = [i["id"] for i in items]
     dupes = {i for i in ids if ids.count(i) > 1}
     if dupes:
@@ -89,8 +94,22 @@ def main() -> int:
     for folder in sorted(p for p in QUERIES.iterdir() if p.is_dir()):
         cats.append({"key": folder.name, "label": folder_label(folder), "blurb": folder_blurb(folder)})
     OUT.parent.mkdir(exist_ok=True)
+    site_q = OUT.parent / "queries"
+    if site_q.exists():
+        shutil.rmtree(site_q)
+    for i in items:
+        dest = OUT.parent / i["file"]
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / i["file"], dest)
+    for c in cats:   # keep folder READMEs (and empty categories) in the downloads
+        readme = QUERIES / c["key"] / "README.md"
+        if readme.exists():
+            (site_q / c["key"]).mkdir(parents=True, exist_ok=True)
+            shutil.copy2(readme, site_q / c["key"] / "README.md")
     OUT.write_text(json.dumps({"categories": cats, "queries": items}, ensure_ascii=False), encoding="utf-8")
     print(f"Wrote {len(items)} queries in {len(cats)} categories to {OUT.relative_to(ROOT)}")
+    for h in hidden:
+        print(f"Left off the site (Broken): {h}")
     return 0
 
 

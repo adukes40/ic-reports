@@ -22,11 +22,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Build queries.json from the .sql headers
+      - name: Build queries.json and copy published queries into the site
         run: python scripts/build_index.py
-      - name: Copy queries and zips into the site
+      - name: Zip the published queries
         run: |
-          cp -r queries site/queries
           cd site
           zip -qr ic-reports-all.zip queries
           for d in queries/*/; do zip -qr "$(basename "$d").zip" "$d"; done

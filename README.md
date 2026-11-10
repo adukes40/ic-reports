@@ -44,7 +44,7 @@ The site's search box looks inside every query, so you can search for a table na
 
 1. Copy `templates/query-template.sql` (or `templates/vendor-template.sql` for a vendor pull) into the right folder under `queries/`. Vendor pulls go in `queries/04-vendors/<vendor>/`, with a one-line `README.md` that starts with `# Vendor Name`.
 2. Fill in the header. The site reads it, so keep the `Field:` layout as it is.
-3. Update `Status:` as you test: `Not run yet`, `Needs review`, `Confirmed good` or `Broken`.
+3. Update `Status:` as you test: `Not run yet`, `Needs review`, `Confirmed good` or `Broken`. A query marked `Broken` stays in the repo but is left off the site until it's fixed.
 4. Commit and push. The site rebuilds itself in a minute or two.
 
 Keep student data, SFTP hostnames, usernames and passwords out of this repo.
