@@ -21,10 +21,8 @@
   --line-2: #b8b8b8;
   --soft: #f2f2f2;
   --open: #fff7dc;
-  --good: #1e6b34; --good-bg: #e3f1e6;
-  --review: #6e4a00; --review-bg: #fdf0c8; --review-bar: #d99a00;
-  --notrun: #444444; --notrun-bg: #ececec;
-  --broken: #a1201b; --broken-bg: #fbe3e1;
+  --good: #1e6b34;
+  --note: #fdf0c8;
   --font-ui: Carlito, Calibri, "Segoe UI", Arial, sans-serif;
   --font-head: "Playfair Display", "Times New Roman", Times, serif;
   --font-mono: "JetBrains Mono", Consolas, ui-monospace, monospace;
@@ -71,20 +69,7 @@ h1 { margin: 0; font: 400 clamp(32px, 4vw, 44px)/1.1 var(--font-head); color: va
 .card:hover { border-color: var(--blue); color: var(--ink); }
 .card h2 { margin: 0; font: 400 24px/1.2 var(--font-head); color: var(--blue); }
 .card p { margin: 0; color: #333; flex-grow: 1; }
-.bar { display: flex; height: 10px; background: var(--notrun-bg); }
-.bar span { height: 100%; }
 .card .foot { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; }
-.legend { margin: 0; font-size: 14px; color: var(--muted); }
-
-/* status */
-.pill { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 2px; font-size: 13px; font-weight: 700; white-space: nowrap; }
-.s-good { color: var(--good); background: var(--good-bg); }
-.s-review { color: var(--review); background: var(--review-bg); }
-.s-notrun { color: var(--notrun); background: var(--notrun-bg); }
-.s-broken { color: var(--broken); background: var(--broken-bg); }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { min-height: 40px; padding: 0 14px; border: 2px solid var(--blue); border-radius: 4px; background: #fff; color: var(--blue); font-weight: 700; cursor: pointer; }
-.chip[aria-pressed="true"] { background: var(--blue); color: #fff; }
 
 /* sections + rows */
 .crumbs { display: flex; flex-wrap: wrap; gap: 8px; font-size: 15px; }
@@ -95,22 +80,22 @@ h1 { margin: 0; font: 400 clamp(32px, 4vw, 44px)/1.1 var(--font-head); color: va
 .section h2 small { font: 15px var(--font-ui); color: var(--ink); margin-left: auto; }
 .section h3 { margin: 20px 0 0; padding-bottom: 6px; border-bottom: 1px solid var(--line-2); font-size: 17px; }
 .item { border-bottom: 1px solid var(--line); }
-.row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; padding: 16px 8px 16px 0; border: 0; background: transparent; text-align: left; cursor: pointer; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; padding: 16px 12px; border: 0; background: transparent; text-align: left; cursor: pointer; }
 .row:hover { background: #fafafa; }
 .item.open > .row { background: var(--open); }
-.row .num { font: 13px var(--font-mono); color: var(--muted); padding-left: 8px; }
+.row .chev { font-size: 14px; font-weight: 700; color: var(--blue); }
 .row .nm { font-weight: 700; font-size: 17px; color: var(--blue); }
 .row .pp { display: block; font-size: 15px; color: #333; }
-.detail { padding: 4px 0 28px 60px; display: flex; flex-direction: column; gap: 16px; }
+.detail { padding: 4px 12px 28px; display: flex; flex-direction: column; gap: 16px; }
 .facts { margin: 0; display: grid; grid-template-columns: minmax(100px, max-content) minmax(0, 1fr); border-top: 2px solid var(--gold); }
 .facts dt { padding: 10px 14px 10px 0; border-bottom: 1px solid #e2e2e2; font-weight: 700; }
 .facts dd { margin: 0; padding: 10px 0; border-bottom: 1px solid #e2e2e2; overflow-wrap: anywhere; }
 .facts code { font: 14px var(--font-mono); }
-.check { background: var(--review-bg); padding: 12px 16px; }
+.check { background: var(--note); padding: 12px 16px; }
 .check strong { color: var(--blue); }
 .code { border: 1px solid var(--line-2); }
 .code-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 12px 8px 16px; background: var(--soft); border-bottom: 1px solid var(--line-2); }
-.code-bar .file { font: 13px var(--font-mono); color: var(--muted); margin-right: auto; overflow-wrap: anywhere; min-width: 0; }
+.code-bar .copied { margin-right: auto; }
 .copied { font-size: 14px; font-weight: 700; color: var(--good); }
 .code-body { overflow: auto; max-height: 460px; padding: 12px 0; font: 13px/21px var(--font-mono); }
 .ln { display: flex; }
@@ -124,8 +109,6 @@ footer .wrap { padding-block: 20px 32px; font-size: 14px; color: var(--muted); d
 
 @media (max-width: 640px) {
   .detail { padding-left: 0; }
-  .row { grid-template-columns: 44px minmax(0, 1fr); }
-  .row .pill { grid-column: 2; justify-self: start; }
   .facts { grid-template-columns: 1fr; } .facts dd { margin-bottom: 6px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -149,17 +132,13 @@ footer .wrap { padding-block: 20px 32px; font-size: 14px; color: var(--muted); d
 // Set this to your Google Form link.
 const REQUEST_URL = "";
 
-const STATUS = { "Confirmed good": "good", "Needs review": "review", "Not run yet": "notrun", "Broken": "broken" };
-const STATUSES = ["Confirmed good", "Needs review", "Not run yet", "Broken"];
-const BAR = { good: "var(--good)", review: "var(--review-bar)", broken: "var(--broken)" };
 const KW = new Set("select from where join left right inner outer cross apply on and or not in is null as with case when then else end order by group having distinct top declare int date varchar union all exists over partition desc asc between like set into values collate".split(" "));
 const FN = new Set("row_number count sum max min convert cast isnull coalesce nullif ltrim rtrim datediff dateadd getdate string_agg patindex len upper lower replace".split(" "));
 
 let DATA = [], CATS = [];
-const st = { view: "home", cat: null, open: null, q: "", catQ: "", status: "all" };
+const st = { view: "home", cat: null, open: null, q: "", catQ: "" };
 const app = document.getElementById("app");
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const pill = s => `<span class="pill s-${STATUS[s] || "notrun"}">${esc(s)}</span>`;
 const words = q => q.toLowerCase().split(/\s+/).filter(Boolean);
 const hits = (d, q) => { const w = words(q); if (!w.length) return true; const h = [d.num, d.name, d.group, d.purpose, d.tables, d.output, Object.values(d.extra || {}).join(" "), d.sql].join(" ").toLowerCase(); return w.every(x => h.includes(x)); };
 
@@ -181,19 +160,19 @@ function itemHTML(d) {
   const open = st.open === d.id;
   let html = `<div class="item${open ? " open" : ""}" id="q-${d.id}">
     <button class="row" type="button" data-open="${d.id}" aria-expanded="${open}">
-      <span class="num">#${d.num}</span>
       <span><span class="nm">${esc(d.name)}</span><span class="pp">${esc(d.purpose)}</span></span>
-      ${pill(d.status)}
+      <span class="chev" aria-hidden="true">${open ? "Hide" : "Show"}</span>
     </button>`;
   if (open) {
-    const facts = [["Type", d.type], ["Output", d.output], ["Parameters", d.params && `<code>${esc(d.params)}</code>`, true], ["Tables", d.tables],
+    const when = (d.type.match(/Run (.+)$/) || [])[1];
+    const facts = [["When to run", when], ["Output", d.output], ["Parameters", d.params && `<code>${esc(d.params)}</code>`, true], ["Tables", d.tables],
       ...Object.entries(d.extra || {})].filter(f => f[1]);
     const lines = hl(d.sql.replace(/\n+$/, "")).split("\n");
     html += `<div class="detail">
       <dl class="facts">${facts.map(([k, v, raw]) => `<dt>${esc(k)}</dt><dd>${raw ? v : esc(v)}</dd>`).join("")}</dl>
       ${d.check ? `<div class="check"><strong>Check before running: </strong>${esc(d.check)}</div>` : ""}
       <div class="code">
-        <div class="code-bar"><span class="file">${esc(d.file)}</span><span class="copied" role="status"></span>
+        <div class="code-bar"><span class="copied" role="status"></span>
           <a class="btn btn-line btn-sm" href="${esc(d.file)}" download>Download .sql</a>
           <button class="btn btn-blue btn-sm" type="button" data-copy="${d.id}">Copy SQL</button></div>
         <div class="code-body">${lines.map((l, i) => `<div class="ln"><b>${i + 1}</b><span class="t">${l || " "}</span></div>`).join("")}</div>
@@ -216,12 +195,9 @@ function homeView() {
   const results = st.q ? DATA.filter(d => hits(d, st.q)) : [];
   const cards = CATS.map(c => {
     const qs = DATA.filter(d => d.cat === c.key), n = qs.length;
-    const cnt = s => qs.filter(d => d.status === s).length;
-    const seg = (s, k) => n ? `<span style="width:${100 * cnt(s) / n}%;background:${BAR[k]}"></span>` : "";
     return `<a class="card" href="#${c.key}">
       <h2>${esc(c.label)}</h2><p>${esc(c.blurb)}</p>
-      <span class="bar" aria-hidden="true">${seg("Confirmed good", "good")}${seg("Needs review", "review")}${seg("Broken", "broken")}</span>
-      <span class="foot"><strong>${n} ${n === 1 ? "query" : "queries"}</strong><span>${n ? cnt("Confirmed good") + " confirmed good" : "None yet"}</span></span>
+      <span class="foot"><strong>${n ? n + (n === 1 ? " query" : " queries") : "None yet"}</strong></span>
     </a>`;
   }).join("");
   let res = "";
@@ -240,19 +216,14 @@ function homeView() {
     <div class="search"><label for="q">Search all queries</label>
       <input id="q" type="search" placeholder="Try guardian, RelatedPair or immunization" value="${esc(st.q)}" autocomplete="off"></div>
     ${res}
-    <div class="cards">${cards}</div>
-    <p class="legend">Each bar shows confirmed good (green), needs review (amber) and broken (red). Gray is not run yet.</p>`;
+    <div class="cards">${cards}</div>`;
 }
 
 function catView() {
   const c = CATS.find(x => x.key === st.cat);
   if (!c) { st.view = "home"; return homeView(); }
   const all = DATA.filter(d => d.cat === c.key);
-  const shown = all.filter(d => (st.status === "all" || d.status === st.status) && hits(d, st.catQ));
-  const chips = ["all", ...STATUSES].map(s => {
-    const n = all.filter(d => (s === "all" || d.status === s) && hits(d, st.catQ)).length;
-    return `<button class="chip" type="button" data-status="${s}" aria-pressed="${st.status === s}">${s === "all" ? "All" : s} · ${n}</button>`;
-  }).join("");
+  const shown = all.filter(d => hits(d, st.catQ));
   return `
     <nav class="crumbs" aria-label="Breadcrumb"><a href="#">All categories</a><span aria-hidden="true">/</span><span>${esc(c.label)}</span></nav>
     <div class="cat-head">
@@ -261,10 +232,9 @@ function catView() {
     </div>
     <div class="search"><label for="cq">Search in ${esc(c.label)}</label>
       <input id="cq" class="small" type="search" placeholder="Name, table or column" value="${esc(st.catQ)}" autocomplete="off"></div>
-    <div class="chips" role="group" aria-label="Filter by status">${chips}</div>
     <section class="section">
       <h2>Queries <small>${shown.length === all.length ? all.length + " queries" : shown.length + " of " + all.length + " shown"}</small></h2>
-      ${shown.length ? listHTML(shown) : `<p class="empty">${all.length ? "Nothing matches. Clear the search or pick another status." : "No queries here yet."}</p>`}
+      ${shown.length ? listHTML(shown) : `<p class="empty">${all.length ? "Nothing matches. Try fewer words." : "No queries here yet."}</p>`}
     </section>`;
 }
 
@@ -276,8 +246,8 @@ function render(focusId) {
 function route() {
   const h = decodeURIComponent(location.hash.slice(1));
   const q = DATA.find(d => "q-" + d.id === h);
-  if (q) { st.view = "cat"; st.cat = q.cat; st.open = q.id; st.status = "all"; st.catQ = ""; }
-  else if (CATS.some(c => c.key === h)) { if (st.cat !== h) { st.status = "all"; st.catQ = ""; st.open = null; } st.view = "cat"; st.cat = h; }
+  if (q) { st.view = "cat"; st.cat = q.cat; st.open = q.id; st.catQ = ""; }
+  else if (CATS.some(c => c.key === h)) { if (st.cat !== h) { st.catQ = ""; st.open = null; } st.view = "cat"; st.cat = h; }
   else { st.view = "home"; }
   render();
   if (q) { const el = document.getElementById("q-" + q.id); if (el) el.scrollIntoView({ block: "start" }); } else window.scrollTo(0, 0);
@@ -295,8 +265,6 @@ app.addEventListener("click", e => {
     render(); const el = document.getElementById("q-" + id); if (el && el.getBoundingClientRect().top < 0) el.scrollIntoView({ block: "start" });
     return;
   }
-  const chip = e.target.closest("[data-status]");
-  if (chip) { st.status = chip.dataset.status; render(); return; }
   const copy = e.target.closest("[data-copy]");
   if (copy) {
     const d = DATA.find(x => x.id === copy.dataset.copy), msg = copy.parentElement.querySelector(".copied");
