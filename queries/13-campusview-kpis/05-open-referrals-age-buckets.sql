@@ -47,7 +47,7 @@ SELECT inc.schoolID AS [School ID], inc.schoolName AS [School], inc.endYear AS [
                        WHEN 'IP' THEN 'In progress'
                        ELSE ISNULL(inc.status, '(no status)') END AS [Incident Status],
        COALESCE(loc.name, NULLIF(inc.location, ''), '(no location)') AS [Location],
-       ev.eventTypes AS [Event Types], ISNULL(off.offenders, 0) AS [Offenders],
+       ev.eventTypes AS [Event Types], ISNULL(oc.offenders, 0) AS [Offenders],
        inc.daysOpen AS [Days Open],
        CASE WHEN inc.daysOpen <= 2  THEN '0 to 2 days'
             WHEN inc.daysOpen <= 5  THEN '3 to 5 days'
@@ -67,5 +67,5 @@ OUTER APPLY (SELECT STRING_AGG(CAST(t.name AS varchar(max)), ', ') AS eventTypes
 OUTER APPLY (SELECT COUNT(DISTINCT br.personID) AS offenders
              FROM BehaviorEvent be
              JOIN BehaviorRole br ON br.eventID = be.eventID AND br.role = 'Offender'
-             WHERE be.incidentID = inc.incidentID) off
+             WHERE be.incidentID = inc.incidentID) oc
 ORDER BY inc.schoolName, inc.daysOpen DESC, inc.incidentID;
