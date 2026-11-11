@@ -12,10 +12,9 @@
    Params:    @endYear, @schoolID, @yearStart, @yearEnd  (change them in the PARAMETERS
               block below)
    Check:     The school year is taken as July 1 to June 30 (@yearStart, @yearEnd). Every
-              enrollment in any
-              year counts except no-shows, so a program dated in the summer between two
-              enrollments will be listed. Programs have no grade range in IC, so a grade
-              the program does not serve is not checked.
+              enrollment in any year counts except no-shows, so a program dated in the
+              summer between two enrollments will be listed. Programs have no grade range
+              in IC, so a grade the program does not serve is not checked.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
