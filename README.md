@@ -1,32 +1,46 @@
-# IC Reports
+<div align="center">
 
-Ready-to-run SQL for Infinite Campus: validation checks, lists, KPIs and vendor pulls for Delaware districts.
-Every query is one `.sql` file you can copy and paste straight into IC's data extract tool.
+# 📊 IC Reports
 
-**Browse, search and copy queries on the site: https://adukes40.github.io/ic-reports/**
+**Ready-to-run SQL for Infinite Campus**<br>
+Validation checks, lists, KPIs and vendor pulls for Delaware school districts.
 
-## How to use a query
+[![Browse the library](https://img.shields.io/badge/Browse%20the%20library-000098?style=for-the-badge&logo=googlechrome&logoColor=white)](https://adukes40.github.io/ic-reports/)
+[![Request a query](https://img.shields.io/badge/Request%20a%20query-fcbe14?style=for-the-badge&logoColor=000098)](https://forms.google.com/)
 
-1. Pick a category below and open a query.
-2. Read the header at the top of the file: what it finds, what it outputs, and anything to check first.
-3. Click **Copy SQL** on the site (or the copy icon above the file here) and paste it into IC's data extract tool.
-4. Optional: change a value in the `PARAMETERS` block, such as `@schoolID` to run one school.
+![Infinite Campus](https://img.shields.io/badge/Infinite%20Campus-SQL%20Server-000098?style=flat-square)
+![Delaware](https://img.shields.io/badge/Delaware-DDOE%20reporting-000098?style=flat-square)
+![Copy and paste](https://img.shields.io/badge/Data%20Extract-copy%20%26%20paste-fcbe14?style=flat-square)
 
-The header is a SQL comment, so you can paste the whole file as-is.
+</div>
 
-## Categories
+---
 
-| Category | What's in it | Queries |
-|---|---|---|
-| [Delaware DOE](queries/01-delaware-ddoe/) | State reporting checks: unit count, DSSF, discipline, SPED, immunizations. | 14 |
-| [Enrollment & census](queries/02-enrollment-census/) | Enrollment records that are overlapping, missing, mis-dated or mis-coded. | 15 |
-| [Demographics](queries/03-demographics/) | Student and guardian identity, race/ethnicity, names, contacts and addresses. | 6 |
-| [Vendors](queries/04-vendors/) | Pulls we send to outside vendors, one folder per vendor. | 0 |
+## 🚀 Quick start
 
-## Request a query
+| Step | What to do |
+|:---:|---|
+| 1️⃣ | Open the **[query library](https://adukes40.github.io/ic-reports/)** and pick a category, or search for what you need. |
+| 2️⃣ | Read what the query finds, what it returns, and anything to check before running it. |
+| 3️⃣ | Click **Copy SQL** and paste it into Infinite Campus's data extract tool. |
+| 4️⃣ | *Optional:* change a value in the `PARAMETERS` block, such as `@schoolID`, to run a single school. |
 
-Need something that isn't here? **[Request a query](https://forms.google.com/)**, describe what you want to see, and it will be added to the list.
+> [!TIP]
+> Each file starts with a header written as a SQL comment, so you can paste the whole file as-is.
 
-## Finding a query
+## 🗂️ Categories
 
-The site's search box looks inside every query, so you can search for a table name (`RelatedPair`), a column, or a word like "guardian". On GitHub, the search box at the top of the repository does the same.
+| | Category | What's in it | Queries |
+|:---:|---|---|:---:|
+| 🏛️ | **[Delaware DOE](queries/01-delaware-ddoe/)** | State reporting checks: unit count, DSSF, discipline, SPED, immunizations | 14 |
+| 🎒 | **[Enrollment & census](queries/02-enrollment-census/)** | Enrollment records that overlap, are missing, or have wrong dates or codes | 15 |
+| 👥 | **[Demographics](queries/03-demographics/)** | Student and guardian identity, race and ethnicity, names, contacts and addresses | 6 |
+| 🤝 | **[Vendors](queries/04-vendors/)** | Files sent to outside vendors, grouped by vendor | 0 |
+
+## 🔍 Finding a query
+
+The library's search box looks inside every query, so you can search for a table name like `RelatedPair`, a column, or a plain word like *guardian*. On GitHub, the search box at the top of the repository does the same.
+
+## 💬 Request a query
+
+Need something that isn't here? **[Request a query](https://forms.google.com/)** and describe what you want to see.
