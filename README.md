@@ -35,6 +35,7 @@ Validation checks, lists, KPIs and vendor pulls for Delaware school districts.
 | **[Delaware DOE](queries/01-delaware-ddoe/)** | State reporting checks: unit count, DSSF, discipline, SPED, immunizations | 14 |
 | **[Enrollment & census](queries/02-enrollment-census/)** | Enrollment records that overlap, are missing, or have wrong dates or codes | 15 |
 | **[Demographics](queries/03-demographics/)** | Student and guardian identity, race and ethnicity, names, contacts and addresses | 6 |
+| **[Behavior & discipline](queries/08-behavior-discipline/)** | Behavior events and referrals per student, by type | 1 |
 | **[Vendors](queries/04-vendors/)** | Files sent to outside vendors, grouped by vendor | 0 |
 
 ## Finding a query
