@@ -1,6 +1,6 @@
 # Enrollment & census
 
-Enrollment records that are overlapping, missing, mis-dated or mis-coded.
+Enrollment records that overlap, are missing, or have wrong dates or codes.
 
 Open a query, click **Copy content** (top right of the file), and paste it into IC's data extract tool.
 
