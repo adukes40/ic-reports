@@ -10,17 +10,17 @@
               present, attendance rate
    Tables:    SchoolYear, Enrollment, Calendar, School, Day, v_AttDayDetail_Exact, Person,
               Identity, SpecialEDState, Lep
-   Params:    @endYear, @schoolID, @startDate, @endDate  (change them in the PARAMETERS
-              block below)
+   Params:    @endYear, @schoolID, @startDate, @endDate, @elStatus  (change them in the
+              PARAMETERS block below)
    Check:     Low income is not included: POSEligibility is empty in this district and no
               other low-income source was found. The rate is days present / days enrolled,
               where each absence counts as the share of the day missed (absentDay in
               v_AttDayDetail_Exact); it is not built from AttDayAggregation minutes
               because scheduledMinutes is filled on few rows here. Special ed = a
               SpecialEDState record open on @endDate (Enrollment.specialEdStatus is
-              blank here); EL = Lep programStatus 'LEP' not exited by @endDate. Race uses
-              the federal code on the current identity. Small groups can identify
-              students, so mind who sees the output.
+              blank here); EL = Lep programStatus equal to @elStatus, not exited by
+              @endDate. Race uses the federal code on the current identity. Small groups
+              can identify students, so mind who sees the output.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
@@ -31,6 +31,7 @@ DECLARE @endYear   int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1
 DECLARE @schoolID  int  = NULL;   -- NULL = all schools
 DECLARE @startDate date = DATEFROMPARTS(@endYear - 1, 7, 1);   -- first day to count
 DECLARE @endDate   date = CONVERT(date, GETDATE());            -- last day to count
+DECLARE @elStatus  varchar(15) = 'LEP';                        -- program status code that means the student is an English learner
 -- ===========================================================================
 
 WITH enrDays AS (   -- per primary enrollment: instructional days enrolled in the range and days absent (partial days as fractions)
@@ -71,7 +72,7 @@ stu AS (   -- adds each student's subgroup values
                                AND (se.exitDate  IS NULL OR se.exitDate  >= @endDate))
                 THEN 'Yes' ELSE 'No' END AS sped,
            CASE WHEN EXISTS (SELECT 1 FROM Lep l
-                             WHERE l.personID = ed.personID AND l.programStatus = 'LEP'
+                             WHERE l.personID = ed.personID AND l.programStatus = @elStatus
                                AND (l.exitDate IS NULL OR l.exitDate >= @endDate))
                 THEN 'Yes' ELSE 'No' END AS el
     FROM enrDays ed

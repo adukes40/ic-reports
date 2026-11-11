@@ -9,13 +9,14 @@
    Output:    One row per student-period: grade, period schedule, period
    Tables:    SchoolYear, Enrollment, Calendar, School, Person, Identity, PeriodSchedule,
               Period, Trial, Roster, SectionPlacement, Term
-   Params:    @endYear, @schoolID, @asOf, @graceDays  (change them in the PARAMETERS
-              block below)
-   Check:     Set @asOf to a day inside a term. Grades 6-12 are picked by reading
-              Enrollment.grade as a number. Only instructional periods that hold at least
-              one section are checked, so an unused period is not reported. Students with
-              an approved release period or a lunch period with no section will show.
-              Schools with several period schedules (A/B days) get a row per schedule.
+   Params:    @endYear, @schoolID, @asOf, @graceDays, @minGrade, @maxGrade  (change them in
+              the PARAMETERS block below)
+   Check:     Set @asOf to a day inside a term. Grades @minGrade to @maxGrade (6-12 unless
+              you change them) are picked by reading Enrollment.grade as a number. Only
+              instructional periods that hold at least one section are checked, so an
+              unused period is not reported. Students with an approved release period or a
+              lunch period with no section will show. Schools with several period
+              schedules (A/B days) get a row per schedule.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
@@ -26,9 +27,11 @@ DECLARE @endYear   int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1
 DECLARE @schoolID  int  = NULL;   -- NULL = all schools
 DECLARE @asOf      date = CONVERT(date, GETDATE());
 DECLARE @graceDays int  = 2;      -- skip students who enrolled fewer than this many days before @asOf
+DECLARE @minGrade  int  = 6;      -- lowest grade number to check
+DECLARE @maxGrade  int  = 12;     -- highest grade number to check
 -- ===========================================================================
 
-WITH act AS (   -- one active primary enrollment per grade 6-12 student on @asOf
+WITH act AS (   -- one active primary enrollment per student in grades @minGrade to @maxGrade on @asOf
     SELECT e.personID, e.calendarID, e.structureID, c.schoolID, s.name AS schoolName, c.endYear, e.grade,
            ROW_NUMBER() OVER (PARTITION BY e.personID ORDER BY e.startDate DESC, e.enrollmentID DESC) AS rn
     FROM Enrollment e
@@ -39,7 +42,7 @@ WITH act AS (   -- one active primary enrollment per grade 6-12 student on @asOf
       AND (@schoolID IS NULL OR c.schoolID = @schoolID)
       AND e.serviceType = 'P' AND ISNULL(e.noShow, 0) = 0
       AND e.startDate <= DATEADD(day, -@graceDays, @asOf) AND (e.endDate IS NULL OR e.endDate >= @asOf)
-      AND TRY_CAST(e.grade AS int) BETWEEN 6 AND 12
+      AND TRY_CAST(e.grade AS int) BETWEEN @minGrade AND @maxGrade
 )
 SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstName AS [First Name],
        a.schoolID AS [School ID], a.schoolName AS [School], a.endYear AS [School Year], a.grade AS [Grade],
