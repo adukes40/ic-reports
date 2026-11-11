@@ -1,7 +1,7 @@
 /* ======================================================================================
    #35  Guardians with no phone or email
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Demographics
    Type:      Validation · Priority 1 · Run BOY, ongoing
    Purpose:   Current guardians of active students with no phone (home, cell, work) or no

@@ -1,7 +1,7 @@
 /* ======================================================================================
    #37  Missing or incomplete address
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Demographics
    Type:      Validation · Priority 1 · Run BOY, ongoing
    Purpose:   Primary household with no current address, no current address marked physical,
