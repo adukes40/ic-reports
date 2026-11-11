@@ -18,5 +18,7 @@ Open a query, click **Copy content** (top right of the file), and paste it into 
 | 74 | [Grade changes after posting](10-grade-changes-after-posting.sql) | Not run yet | Posted grades whose record was last changed after grading closed for the term. |
 | 75 | [Grade book usage](11-grade-book-usage.sql) | Not run yet | For every graded section meeting this term, how many assignments have at least one score and when a score was last entered. Flags sections with fewer than the minimum. |
 | 76 | [Missing assignments by student](12-missing-assignments-by-student.sql) | Not run yet | Assignments flagged Missing in the grade book for active students, due in the date range, in classes they are still in. |
+| 77 | [Honor roll / class rank](13-honor-roll-class-rank.sql) | Not run yet | Active students whose term GPA meets the minimum, with their cumulative GPA and class rank within their school and grade. |
+| 78 | [Graduation cohort tracking](14-graduation-cohort-tracking.sql) | Not run yet | Every student in the chosen graduation cohorts with a status (graduated in 4, 5 or 6 years, still enrolled, left) and the counts and 4-year rate for their cohort and school. |
 
 [← Back to the library](../../README.md)
