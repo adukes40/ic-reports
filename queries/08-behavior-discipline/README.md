@@ -13,5 +13,7 @@ Open a query, click **Copy content** (top right of the file), and paste it into 
 | 100 | [Behavior incidents per student, by type](01-behavior-incidents-per-student.sql) | Confirmed good | Per student, how many behavior events they were in this year as offender or participant, with a breakdown by event type. Filter Total Events to 2 or more for repeat referrals. |
 | 101 | [Discipline by subgroup](09-discipline-by-subgroup.sql) | Not run yet | Per school, referrals and suspensions this year by race/ethnicity, Hispanic ethnicity, gender, grade, English learner, special education and incident type, with the students enrolled in each group as the denominator. |
 | 102 | [Exclusionary discipline days](10-exclusionary-discipline-days.sql) | Not run yet | Per school and subgroup, the out-of-school suspension and expulsion days assigned this year and the number of students affected. |
+| 103 | [Referrals by location, time and type](11-referrals-by-location-time-type.sql) | Not run yet | Where and when behavior incidents happen: incident counts per school by location, hour of day, weekday and event type over a date range. |
+| 104 | [Restraint / seclusion incidents](12-restraint-seclusion-incidents.sql) | Not run yet | This year's behavior responses (IC's record of a restraint or seclusion), with the student, grade, date, length and the staff involved, for Delaware's incident-level restraint reporting. |
 
 [← Back to the library](../../README.md)
