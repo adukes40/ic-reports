@@ -11,8 +11,8 @@
    Tables:    SchoolYear, Enrollment, Calendar, School, Person, Identity, TeamMember,
               v_AttDaySummary_Exact, BehaviorEvent, BehaviorRole, GradingScore,
               GradingTask, Term
-   Params:    @endYear, @schoolID, @asOf, @counselorID, @counselorLike, @task, @term
-              (change them in the PARAMETERS block below)
+   Params:    @endYear, @schoolID, @asOf, @counselorID, @counselorLike, @task,
+              @term  (change them in the PARAMETERS block below)
    Check:     Counselor assignment is read from the student's Team Members (TeamMember)
               where the role or title matches @counselorLike; confirm that is where your
               district assigns counselors and what the role is called. @counselorID is the

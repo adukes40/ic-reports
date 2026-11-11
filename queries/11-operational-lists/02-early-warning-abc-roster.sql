@@ -12,8 +12,8 @@
    Tables:    SchoolYear, Enrollment, Calendar, School, Person, Identity,
               v_AttDaySummary_Exact, BehaviorEvent, BehaviorRole, GradingScore,
               GradingTask, Term, Section, Course
-   Params:    @endYear, @schoolID, @asOf, @task, @term, @absentPct (10), @minReferrals (2)
-              (change them in the PARAMETERS block below)
+   Params:    @endYear, @schoolID, @asOf, @task, @term, @absentPct (10),
+              @minReferrals (2)  (change them in the PARAMETERS block below)
    Check:     @task must match your grading task name (GradingTask.name) and @term your
               term name (Term.name). Failing score is 'F'; add your own failing marks to
               the list in the fail CTE. Referral roles are 'Offender' and 'Participant'.

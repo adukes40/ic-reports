@@ -70,24 +70,27 @@ sch AS (   -- every school that has students or sections
     UNION
     SELECT schoolID, schoolName FROM sec
 )
-SELECT a.schoolID AS [School ID], a.schoolName AS [School], @endYear AS [School Year],
-       a.grade AS [Grade],
-       COUNT(*) AS [Active Students],
-       CAST(NULL AS int) AS [Teachers With Sections],
-       CAST(NULL AS int) AS [Active Sections]
-FROM act a
-WHERE a.rn = 1
-GROUP BY a.schoolID, a.schoolName, a.grade
-UNION ALL
-SELECT sch.schoolID, sch.schoolName, @endYear, 'All',
-       (SELECT COUNT(*) FROM act a WHERE a.rn = 1 AND a.schoolID = sch.schoolID),
-       (SELECT COUNT(*) FROM teach t WHERE t.schoolID = sch.schoolID),
-       (SELECT COUNT(*) FROM sec WHERE sec.schoolID = sch.schoolID)
-FROM sch
-UNION ALL
-SELECT NULL, 'District total', @endYear, 'All',
-       (SELECT COUNT(*) FROM act a WHERE a.rn = 1),
-       (SELECT COUNT(DISTINCT t.personID) FROM teach t),
-       (SELECT COUNT(*) FROM sec)
-ORDER BY CASE WHEN [School ID] IS NULL THEN 1 ELSE 0 END, [School],
-         CASE WHEN [Grade] = 'All' THEN 1 ELSE 0 END, [Grade];
+SELECT x.schoolID AS [School ID], x.schoolName AS [School], @endYear AS [School Year],
+       x.grade AS [Grade],
+       x.students AS [Active Students],
+       x.teachers AS [Teachers With Sections],
+       x.sections AS [Active Sections]
+FROM (
+    SELECT a.schoolID, a.schoolName, a.grade, COUNT(*) AS students,
+           CAST(NULL AS int) AS teachers, CAST(NULL AS int) AS sections, 0 AS totalRow
+    FROM act a
+    WHERE a.rn = 1
+    GROUP BY a.schoolID, a.schoolName, a.grade
+    UNION ALL
+    SELECT sch.schoolID, sch.schoolName, 'All',
+           (SELECT COUNT(*) FROM act a WHERE a.rn = 1 AND a.schoolID = sch.schoolID),
+           (SELECT COUNT(*) FROM teach t WHERE t.schoolID = sch.schoolID),
+           (SELECT COUNT(*) FROM sec WHERE sec.schoolID = sch.schoolID), 1
+    FROM sch
+    UNION ALL
+    SELECT NULL, 'District total', 'All',
+           (SELECT COUNT(*) FROM act a WHERE a.rn = 1),
+           (SELECT COUNT(DISTINCT t.personID) FROM teach t),
+           (SELECT COUNT(*) FROM sec), 2
+) x
+ORDER BY CASE WHEN x.totalRow = 2 THEN 1 ELSE 0 END, x.schoolName, x.totalRow, x.grade;
