@@ -11,20 +11,20 @@
    Tables:    SchoolYear, Enrollment, Calendar, School, TranscriptCredit,
               TranscriptCourse, Trial, Roster, Section, Course, GradingTaskCredit,
               CurriculumStandard, Person, Identity
-   Params:    @endYear, @schoolID, @asOf, @requiredCredits (24), @seniorGrade, @reqEnglish,
-              @englishLike, @reqMath, @mathLike, @reqScience, @scienceLike, @reqSocial,
-              @socialLike, @reqWorldLang, @worldLangLike, @reqPE, @peLike, @reqHealth,
-              @healthLike, @reqCareer, @careerLike  (change them in the PARAMETERS block
-              below)
+   Params:    @endYear, @schoolID, @asOf, @requiredCredits (24), @seniorGrade,
+              @reqEnglish, @englishLike, @reqMath, @mathLike, @reqScience, @scienceLike,
+              @reqSocial, @socialLike, @reqWorldLang, @worldLangLike, @reqPE, @peLike,
+              @reqHealth, @healthLike, @reqCareer, @careerLike  (change them in the
+              PARAMETERS block below)
    Check:     Requirements are not stored in Campus here, so they are parameters: 24 total
               and the Delaware minimums per area (14 DE Admin. Code 505, 5.1). Change the
               @req... values to your district's; 0 means the area is not required. The
               rule that one math credit is earned in the senior year is not tested. The
               @...Like name patterns must match your credit type names, or every senior
-              shows as short in that area. Electives are
-              covered by the total. In progress = credit set on this year's scheduled
-              courses that is not on the transcript yet; it carries a credit type only
-              where the course's grading task has one.
+              shows as short in that area. Electives are covered by the total. In
+              progress = credit set on this year's scheduled courses that is not on the
+              transcript yet; it carries a credit type only where the course's grading
+              task has one.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.

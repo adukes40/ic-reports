@@ -43,7 +43,8 @@ SELECT c.schoolID AS [School ID], s.name AS [School], c.endYear AS [School Year]
        (SELECT COUNT(DISTINCT br.personID)
         FROM BehaviorEvent be
         JOIN BehaviorRole br ON br.eventID = be.eventID
-        WHERE be.incidentID = bi.incidentID AND br.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@offenderRoles, ','))) AS [Offenders],
+        WHERE be.incidentID = bi.incidentID
+          AND br.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@offenderRoles, ','))) AS [Offenders],
        d.daysOpen AS [Days Open],
        CASE WHEN d.daysOpen <= @bucket1Days THEN CONCAT('0-', @bucket1Days, ' days')
             WHEN d.daysOpen <= @bucket2Days THEN CONCAT(@bucket1Days + 1, '-', @bucket2Days, ' days')

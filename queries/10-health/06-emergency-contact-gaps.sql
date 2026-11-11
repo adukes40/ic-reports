@@ -10,8 +10,8 @@
               issue
    Tables:    SchoolYear, Enrollment, Calendar, School, Person, Identity, RelatedPair,
               Contact
-   Params:    @endYear, @schoolID, @asOf, @minWithPhone  (change them in the PARAMETERS block
-              below)
+   Params:    @endYear, @schoolID, @asOf, @minWithPhone  (change them in the PARAMETERS
+              block below)
    Check:     Emergency contact = a current relationship with an Emergency Priority
               (Seq) number. Phone = home, cell or work on the contact's own record; the
               household phone doesn't count.

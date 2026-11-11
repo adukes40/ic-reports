@@ -34,8 +34,8 @@ DECLARE @endYear       int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active
 DECLARE @schoolID      int  = NULL;   -- NULL = all schools
 DECLARE @asOf          date = CONVERT(date, GETDATE());   -- EL and special ed status are taken on this date
 DECLARE @suspPattern   varchar(30) = '%susp%';            -- resolution type names counted as a suspension
-DECLARE @offenderRoles varchar(200) = 'Offender';       -- role names counted as a referral, comma-separated
-DECLARE @elStatus      varchar(15) = 'LEP';               -- program status code that means the student is an English learner
+DECLARE @offenderRoles varchar(200) = 'Offender';         -- role names counted as a referral, comma-separated
+DECLARE @elStatus      varchar(15)  = 'LEP';              -- program status code that means the student is an English learner
 -- ===========================================================================
 
 WITH enr AS (   -- primary enrollments this year, latest per student per school numbered 1

@@ -29,7 +29,7 @@ DECLARE @schoolID   int  = NULL;   -- NULL = all schools
 DECLARE @asOf       date = CONVERT(date, GETDATE());            -- days after this are not counted
 DECLARE @winStart   date = DATEFROMPARTS(@endYear - 1, 10, 1);  -- window start: Oct 1
 DECLARE @winEnd     date = DATEFROMPARTS(@endYear, 5, 20);      -- window end: May 20
-DECLARE @chronicPct decimal(5,2) = 10.0;                    -- chronic when this percent or more of the student's days are absences
+DECLARE @chronicPct decimal(5,2) = 10.0;                      -- chronic when this percent or more of the student's days are absences
 -- ===========================================================================
 
 WITH cal AS (   -- this year's calendars

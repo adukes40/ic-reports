@@ -17,10 +17,9 @@
               Year NGA) and is read as the year the student is due to graduate; students
               with neither are left out. Graduated = a diploma date on the Graduation
               tab; a diploma dated through @lastGradMonth (August) counts in that school
-              year. Students
-              are counted at the school of their latest enrollment. "Left" includes
-              transfers out, which the state removes from the cohort: use Last End
-              Status to separate them, so this rate will not equal the published DDOE
+              year. Students are counted at the school of their latest enrollment. "Left"
+              includes transfers out, which the state removes from the cohort: use Last
+              End Status to separate them, so this rate will not equal the published DDOE
               rate. Run it during the school year; over the summer unfinished students
               show as Left.
    --------------------------------------------------------------------------------------

@@ -9,8 +9,8 @@
    Output:    One row per student per flag: grade, flag type
    Tables:    SchoolYear, Enrollment, Calendar, School, Person, Identity,
               ProgramParticipation, Program
-   Params:    @endYear, @schoolID, @asOf, @flagPatterns  (change them in the PARAMETERS block
-              below)
+   Params:    @endYear, @schoolID, @asOf, @flagPatterns  (change them in the PARAMETERS
+              block below)
    Check:     There is no custody table; this reads student Flags (Program /
               ProgramParticipation) whose name matches a pattern in @flagPatterns. Compare
               that list with your district's flag names and change it.

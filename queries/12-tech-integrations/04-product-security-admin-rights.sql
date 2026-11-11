@@ -12,8 +12,8 @@
               group name), the tools with R/W/A/D, issue
    Tables:    SchoolYear, UserAccount, Person, Identity, EmploymentAssignment, School,
               UserGroup, UserGroupMember, UserToolRights, UserGroupToolRights, CampusTool
-   Params:    @endYear, @schoolID, @asOf, @adminToolPatterns  (change them in the PARAMETERS
-              block below)
+   Params:    @endYear, @schoolID, @asOf, @adminToolPatterns  (change them in the
+              PARAMETERS block below)
    Check:     The account administration tools are picked by name with the patterns in
               @adminToolPatterns (User Account..., User Group..., Product Security, Login
               As User, Tool Rights, Calendar Rights, Security Preferences): compare those

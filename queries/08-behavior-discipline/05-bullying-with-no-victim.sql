@@ -36,7 +36,8 @@ SELECT c.schoolID AS [School ID], s.name AS [School], c.endYear AS [School Year]
        bt.code AS [Event Code], bt.stateEventCode AS [State Event Code], bt.name AS [Event Type],
        CASE WHEN be.bullyingEvent = 1 THEN 'Y' ELSE 'N' END AS [Bullying Checkbox],
        (SELECT COUNT(*) FROM BehaviorRole o
-        WHERE o.eventID = be.eventID AND o.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@offenderRoles, ','))) AS [Offenders],
+        WHERE o.eventID = be.eventID
+          AND o.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@offenderRoles, ','))) AS [Offenders],
        'Bullying or harassment event has no victim' AS [Issue]
 FROM BehaviorEvent be
 JOIN Calendar c ON c.calendarID = be.calendarID
@@ -48,5 +49,6 @@ WHERE c.endYear = @endYear
   AND (@schoolID IS NULL OR c.schoolID = @schoolID)
   AND (be.bullyingEvent = 1 OR bt.name LIKE @bullyPattern OR bt.name LIKE @harassPattern)
   AND NOT EXISTS (SELECT 1 FROM BehaviorRole v
-                  WHERE v.eventID = be.eventID AND v.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@victimRoles, ',')))
+                  WHERE v.eventID = be.eventID
+                    AND v.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@victimRoles, ',')))
 ORDER BY s.name, bi.timestamp, be.incidentID, be.eventID;
