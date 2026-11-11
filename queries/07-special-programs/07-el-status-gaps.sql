@@ -15,8 +15,8 @@
    Check:     Status codes are assumed to be IC's standard ones: exited starts with
               'Exit' (@exitedLike), and statuses starting with 'Not' or 'Pend' are not
               EL. The EL Status column shows the real codes; adjust if yours differ.
-              The EL program type and EL services are not used in this district, so a
-              missing EL program is not checked. First-US-school date is
+              The EL program type and EL services are not filled in here, so a missing
+              EL program is not checked. First-US-school date is
               Identity.dateEnteredUSSchool.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.

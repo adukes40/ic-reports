@@ -17,5 +17,7 @@ Open a query, click **Copy content** (top right of the file), and paste it into 
 | 87 | [Homeless (McKinney-Vento) gaps](09-homeless-mckinney-vento-gaps.sql) | Not run yet | Active homeless records for active students that are missing the primary nighttime residence or the unaccompanied youth value. |
 | 88 | [Foster care gaps](10-foster-care-gaps.sql) | Not run yet | Active foster care records for active students where the student has no state ID or the record has no case worker name or phone. |
 | 89 | [Program dates outside enrollment](11-program-dates-outside-enrollment.sql) | Not run yet | Program participation records in effect this school year whose start or end date does not fall inside any enrollment the student has in the district. |
+| 90 | [Two open records for one program](12-two-open-records-one-program.sql) | Not run yet | Active students with two or more open (no end date) records for the same program: program participation, EL, homeless, foster care, Section 504 or special ed status. |
+| 92 | [Program rosters](14-program-rosters.sql) | Not run yet | Active students in a program on @asOf, by school and grade, with the start date. Covers programs and flags (program participation) plus EL, homeless and foster care, which have their own records. |
 
 [← Back to the library](../../README.md)

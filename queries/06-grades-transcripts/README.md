@@ -15,5 +15,8 @@ Open a query, click **Copy content** (top right of the file), and paste it into 
 | 71 | [Credit-deficient students by grade](07-credit-deficient-students-by-grade.sql) | Not run yet | Active grade 9-12 students whose total earned transcript credits are below the number expected for their grade. |
 | 72 | [Transcripts with no GPA](08-transcripts-with-no-gpa.sql) | Not run yet | This year's transcript rows that should count toward GPA but cannot, and grade 9-12 students who have transcript rows but no cumulative GPA. |
 | 73 | [Duplicate / invalid stored grades](09-duplicate-invalid-stored-grades.sql) | Not run yet | Transcript rows posted more than once for the same student, course, term and year, and transcript rows with a blank or unrecognised mark. |
+| 74 | [Grade changes after posting](10-grade-changes-after-posting.sql) | Not run yet | Posted grades whose record was last changed after grading closed for the term. |
+| 75 | [Grade book usage](11-grade-book-usage.sql) | Not run yet | For every graded section meeting this term, how many assignments have at least one score and when a score was last entered. Flags sections with fewer than the minimum. |
+| 76 | [Missing assignments by student](12-missing-assignments-by-student.sql) | Not run yet | Assignments flagged Missing in the grade book for active students, due in the date range, in classes they are still in. |
 
 [← Back to the library](../../README.md)
