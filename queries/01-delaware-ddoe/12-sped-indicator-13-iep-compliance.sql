@@ -27,7 +27,7 @@ DECLARE @asOf          date = CONVERT(date, GETDATE());
 -- ===========================================================================
 
 WITH stu AS (   -- current primary enrollments
-    SELECT e.personID, c.schoolID, s.name AS schoolName, c.endYear, e.grade, e.specialEdStatus,
+    SELECT e.personID, c.schoolID, s.name AS schoolName, c.endYear, e.grade,
            ROW_NUMBER() OVER (PARTITION BY e.personID ORDER BY e.startDate DESC) AS rn
     FROM Enrollment e
     JOIN Calendar c ON c.calendarID = e.calendarID
@@ -60,7 +60,7 @@ cur AS (
 )
 SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstName AS [First Name],
        cur.schoolID AS [School ID], cur.schoolName AS [School], cur.endYear AS [School Year], cur.grade AS [Grade],
-       cur.age AS [Age], cur.specialEdStatus AS [Special Ed Status], cur.planType AS [Plan Type],
+       cur.age AS [Age], cur.planType AS [Plan Type],
        CONVERT(date, cur.iepStart) AS [IEP Start],
        CONVERT(date, cur.iepEnd)   AS [IEP End],
        x.issue AS [Issue]
