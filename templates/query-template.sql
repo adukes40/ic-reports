@@ -18,6 +18,8 @@
 DECLARE @endYear  int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
 DECLARE @schoolID int  = NULL;   -- NULL = all schools
 DECLARE @asOf     date = CONVERT(date, GETDATE());
+-- Anything a district or state defines (grade names, status codes, role names, marks,
+-- name patterns) goes here as a DECLARE with the Infinite Campus default, never in the query below.
 -- ===========================================================================
 
 SELECT ...;
