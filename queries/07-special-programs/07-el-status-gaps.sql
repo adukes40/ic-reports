@@ -10,10 +10,10 @@
    Output:    One row per problem: school, grade, EL status, identified date, exit date,
               issue
    Tables:    SchoolYear, Enrollment, Calendar, School, Lep, Person, Identity
-   Params:    @endYear, @schoolID, @asOf, @exitedLike, @elNotLike, @elPendingLike  (change
+   Params:    @endYear, @schoolID, @asOf, @elExitedLike, @elNotLike, @elPendingLike  (change
               them in the PARAMETERS block below)
    Check:     Status codes are assumed to be IC's standard ones: exited starts with
-              'Exit' (@exitedLike), and statuses starting with 'Not' (@elNotLike) or
+              'Exit' (@elExitedLike), and statuses starting with 'Not' (@elNotLike) or
               'Pend' (@elPendingLike) are not EL. The EL Status column shows the real
               codes; change the parameters if yours differ.
               The EL program type and EL services are not filled in here, so a missing
@@ -28,7 +28,7 @@
 DECLARE @endYear       int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
 DECLARE @schoolID      int  = NULL;   -- NULL = all schools
 DECLARE @asOf          date = CONVERT(date, GETDATE());
-DECLARE @exitedLike    varchar(20) = 'Exit%';   -- EL program status code(s) that mean exited / reclassified
+DECLARE @elExitedLike    varchar(20) = 'Exit%';   -- EL program status code(s) that mean exited / reclassified
 DECLARE @elNotLike     varchar(20) = 'Not%';    -- EL program status code(s) that mean not an English learner
 DECLARE @elPendingLike varchar(20) = 'Pend%';   -- EL program status code(s) that mean pending
 -- ===========================================================================
@@ -48,8 +48,8 @@ WITH act AS (   -- one active primary enrollment per student on @asOf
 el AS (   -- EL records with the status sorted into blank / exited / current EL
     SELECT l.personID, l.programStatus, l.identifiedDate, l.exitDate,
            CASE WHEN NULLIF(LTRIM(RTRIM(l.programStatus)), '') IS NULL THEN 1 ELSE 0 END AS noStatus,
-           CASE WHEN l.programStatus LIKE @exitedLike THEN 1 ELSE 0 END AS isExited,
-           CASE WHEN l.programStatus NOT LIKE @exitedLike
+           CASE WHEN l.programStatus LIKE @elExitedLike THEN 1 ELSE 0 END AS isExited,
+           CASE WHEN l.programStatus NOT LIKE @elExitedLike
                  AND l.programStatus NOT LIKE @elNotLike     -- not EL
                  AND l.programStatus NOT LIKE @elPendingLike    -- pending
                  AND NULLIF(LTRIM(RTRIM(l.programStatus)), '') IS NOT NULL
