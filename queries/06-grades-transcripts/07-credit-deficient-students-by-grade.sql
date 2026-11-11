@@ -10,7 +10,8 @@
               credits behind
    Tables:    SchoolYear, Enrollment, Calendar, School, TranscriptCredit, Person, Identity
    Params:    @endYear, @schoolID, @asOf, @expected09 (0), @expected10 (6), @expected11
-              (12), @expected12 (18)  (change them in the PARAMETERS block below)
+              (12), @expected12 (18), @grade9, @grade10, @grade11, @seniorGrade  (change
+              them in the PARAMETERS block below)
    Check:     The defaults are the credits a student should hold at the start of each
               grade on Delaware's 24-credit diploma (6 a year). Raise them as the year
               goes on, or to match your district's promotion rules. Only credit posted to
@@ -21,19 +22,23 @@
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear    int          = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID   int          = NULL;   -- NULL = all schools
-DECLARE @asOf       date         = CONVERT(date, GETDATE());
-DECLARE @expected09 decimal(5,2) = 0;      -- credits a 9th grader should have by now
-DECLARE @expected10 decimal(5,2) = 6;      -- credits a 10th grader should have by now
-DECLARE @expected11 decimal(5,2) = 12;     -- credits an 11th grader should have by now
-DECLARE @expected12 decimal(5,2) = 18;     -- credits a 12th grader should have by now
+DECLARE @endYear     int          = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID    int          = NULL;   -- NULL = all schools
+DECLARE @asOf        date         = CONVERT(date, GETDATE());
+DECLARE @expected09  decimal(5,2) = 0;      -- credits a 9th grader should have by now
+DECLARE @expected10  decimal(5,2) = 6;      -- credits a 10th grader should have by now
+DECLARE @expected11  decimal(5,2) = 12;     -- credits an 11th grader should have by now
+DECLARE @expected12  decimal(5,2) = 18;     -- credits a 12th grader should have by now
+DECLARE @grade9      varchar(10)  = '09';   -- grade name of your 9th graders
+DECLARE @grade10     varchar(10)  = '10';   -- grade name of your 10th graders
+DECLARE @grade11     varchar(10)  = '11';   -- grade name of your 11th graders
+DECLARE @seniorGrade varchar(10)  = '12';   -- grade name of your 12th graders
 -- ===========================================================================
 
 WITH act AS (   -- one active primary enrollment per grade 9-12 student on @asOf, with the credits expected
     SELECT e.personID, c.schoolID, s.name AS schoolName, c.endYear, e.grade,
-           CASE e.grade WHEN '09' THEN @expected09 WHEN '10' THEN @expected10
-                        WHEN '11' THEN @expected11 ELSE @expected12 END AS expected,
+           CASE e.grade WHEN @grade9  THEN @expected09 WHEN @grade10 THEN @expected10
+                        WHEN @grade11 THEN @expected11 ELSE @expected12 END AS expected,
            ROW_NUMBER() OVER (PARTITION BY e.personID ORDER BY e.startDate DESC, e.enrollmentID DESC) AS rn
     FROM Enrollment e
     JOIN Calendar c ON c.calendarID = e.calendarID
@@ -43,7 +48,7 @@ WITH act AS (   -- one active primary enrollment per grade 9-12 student on @asOf
       AND (@schoolID IS NULL OR c.schoolID = @schoolID)
       AND e.serviceType = 'P' AND ISNULL(e.noShow, 0) = 0
       AND e.startDate <= @asOf AND (e.endDate IS NULL OR e.endDate >= @asOf)
-      AND e.grade IN ('09', '10', '11', '12')
+      AND e.grade IN (@grade9, @grade10, @grade11, @seniorGrade)
 ),
 earned AS (   -- total transcript credits earned per student, all years
     SELECT tcr.personID, SUM(tcr.creditsEarned) AS credits

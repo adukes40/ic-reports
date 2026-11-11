@@ -11,28 +11,31 @@
    Tables:    SchoolYear, Enrollment, Calendar, School, ScheduleStructure, TermSchedule,
               Term, GradingScore, GradingTask, Section, Trial, Course, GradingTaskCredit,
               ScoreListItem, Person, Identity
-   Params:    @endYear, @schoolID, @asOf, @term, @task, @failMarks, @minGPA  (change them
-              in the PARAMETERS block below)
+   Params:    @endYear, @schoolID, @asOf, @term, @task, @failMarks, @minGPA, @msGrades,
+              @elaMathAreas  (change them in the PARAMETERS block below)
    Check:     @failMarks must list your failing marks exactly as posted (default F).
-              English and math are courses with SCED subject area 01 or 02, so courses
-              with no SCED code are missed. Term GPA is worked out here from each mark's
-              GPA value in the course's score group, weighted by the course GPA weight;
-              it is blank where score groups carry no GPA values. Uses the posted grade,
-              or the in-progress grade when nothing is posted. Set @task to the one task
-              that carries the term grade, or the GPA mixes every task.
+              @msGrades must list your middle school grade names. English and math are
+              courses whose SCED subject area is in @elaMathAreas (default 01, 02), so
+              courses with no SCED code are missed. Term GPA is worked out here from each
+              mark's GPA value in the course's score group, weighted by the course GPA
+              weight; it is blank where score groups carry no GPA values. Uses the posted
+              grade, or the in-progress grade when nothing is posted. Set @task to the one
+              task that carries the term grade, or the GPA mixes every task.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear   int          = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID  int          = NULL;   -- NULL = all schools
-DECLARE @asOf      date         = CONVERT(date, GETDATE());
-DECLARE @term      varchar(10)  = NULL;   -- term name, e.g. 'Q1'; NULL = the term in session on @asOf
-DECLARE @task      varchar(100) = '';     -- part of the grading task name, e.g. 'Quarter'; '' = every task
-DECLARE @failMarks varchar(200) = 'F';    -- failing marks, comma separated
-DECLARE @minGPA    decimal(4,2) = 2.0;    -- warn when the term GPA is below this
+DECLARE @endYear      int          = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID     int          = NULL;   -- NULL = all schools
+DECLARE @asOf         date         = CONVERT(date, GETDATE());
+DECLARE @term         varchar(10)  = NULL;   -- term name, e.g. 'Q1'; NULL = the term in session on @asOf
+DECLARE @task         varchar(100) = '';     -- part of the grading task name, e.g. 'Quarter'; '' = every task
+DECLARE @failMarks    varchar(200) = 'F';    -- failing marks, comma separated
+DECLARE @minGPA       decimal(4,2) = 2.0;    -- warn when the term GPA is below this
+DECLARE @msGrades     varchar(200) = '06,07,08';   -- middle school grade names, comma-separated
+DECLARE @elaMathAreas varchar(200) = '01,02';      -- SCED subject area codes for English and math, comma-separated
 -- ===========================================================================
 
 WITH act AS (   -- one active primary enrollment per grade 6-8 student on @asOf
@@ -46,7 +49,7 @@ WITH act AS (   -- one active primary enrollment per grade 6-8 student on @asOf
       AND (@schoolID IS NULL OR c.schoolID = @schoolID)
       AND e.serviceType = 'P' AND ISNULL(e.noShow, 0) = 0
       AND e.startDate <= @asOf AND (e.endDate IS NULL OR e.endDate >= @asOf)
-      AND e.grade IN ('06', '07', '08')
+      AND e.grade IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@msGrades, ','))
 ),
 trm AS (   -- the term to report on in each calendar
     SELECT ss.calendarID, t.termID
@@ -57,7 +60,7 @@ trm AS (   -- the term to report on in each calendar
 ),
 marks AS (   -- posted mark, else in-progress mark, per student and course, with its GPA value
     SELECT a.personID, co.name AS courseName, co.gpaWeight, x.mark, gv.gpaValue,
-           CASE WHEN co.scedSubjectArea IN ('01', '02')
+           CASE WHEN co.scedSubjectArea IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@elaMathAreas, ','))
                  AND CHARINDEX(',' + x.mark + ',', ',' + REPLACE(@failMarks, ' ', '') + ',') > 0
                 THEN 1 ELSE 0 END AS failingCore
     FROM act a

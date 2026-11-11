@@ -10,22 +10,23 @@
               event type, state event code, offender grade, why it was flagged
    Tables:    SchoolYear, BehaviorEvent, BehaviorIncident, BehaviorRole, BehaviorType,
               Calendar, School, Enrollment
-   Params:    @endYear, @schoolID, @violentCodes (blank)  (change them in the PARAMETERS
-              block below)
-   Check:     By default only events with the violence indicator ticked are listed; that box
-              is not filled on older converted events. To add the state's violent offense
-              codes, put the BehaviorType.stateEventCode values in @violentCodes. Offender
-              names are left out on purpose. The role name Offender must match your
-              BehaviorRole.role values.
+   Params:    @endYear, @schoolID, @violentCodes (blank), @offenderRoles  (change them in
+              the PARAMETERS block below)
+   Check:     By default only events with the violence indicator ticked are listed; that
+              box is not filled on older converted events. To add the state's violent
+              offense codes, put the BehaviorType.stateEventCode values in @violentCodes.
+              Offender names are left out on purpose. The role names in @offenderRoles
+              must match your BehaviorRole.role values.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear      int          = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID     int          = NULL;   -- NULL = all schools
-DECLARE @violentCodes varchar(500) = '';     -- state event codes to treat as violent, comma-separated, e.g. 'A1,B2'; '' = none
+DECLARE @endYear       int          = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID      int          = NULL;   -- NULL = all schools
+DECLARE @violentCodes  varchar(500) = '';     -- state event codes to treat as violent, comma-separated, e.g. 'A1,B2'; '' = none
+DECLARE @offenderRoles varchar(200) = 'Offender';   -- role names counted as the offender, comma-separated
 -- ===========================================================================
 
 SELECT c.schoolID AS [School ID], s.name AS [School], c.endYear AS [School Year],
@@ -41,7 +42,8 @@ JOIN BehaviorIncident bi ON bi.incidentID = be.incidentID
 JOIN Calendar c          ON c.calendarID = be.calendarID
 JOIN School   s          ON s.schoolID   = c.schoolID
 LEFT JOIN BehaviorType bt ON bt.typeID = be.typeID
-LEFT JOIN BehaviorRole br ON br.eventID = be.eventID AND br.role = 'Offender'
+LEFT JOIN BehaviorRole br ON br.eventID = be.eventID
+                         AND br.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@offenderRoles, ','))
 OUTER APPLY (SELECT TOP 1 e.grade             -- latest enrollment in the event's calendar
              FROM Enrollment e
              WHERE e.personID = br.personID AND e.calendarID = be.calendarID

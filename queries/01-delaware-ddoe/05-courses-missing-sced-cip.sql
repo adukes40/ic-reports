@@ -9,9 +9,10 @@
    Output:    One row per problem course: school, course number and name, students rostered,
               current codes, issue
    Tables:    Calendar, School, Course, Section, Trial, Roster
-   Params:    @endYear, @schoolID, @asOf  (change them in the PARAMETERS block below)
+   Params:    @endYear, @schoolID, @asOf, @cteSubjectAreas  (change them in the PARAMETERS
+              block below)
    Check:     A course counts as CTE when its SCED subject area is 10 to 21 (the career
-              and technical areas); change the list in the query if your CTE courses are
+              and technical areas); change @cteSubjectAreas if your CTE courses are
               coded differently. A blank SCED passes if Course.stateCode is filled.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
@@ -22,6 +23,7 @@
 DECLARE @endYear  int = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
 DECLARE @schoolID int = NULL;   -- NULL = all schools
 DECLARE @asOf     date = CONVERT(date, GETDATE());
+DECLARE @cteSubjectAreas varchar(200) = '10,11,12,13,14,15,16,17,18,19,20,21';   -- SCED subject areas that are CTE, comma-separated
 -- ===========================================================================
 
 WITH crs AS (
@@ -53,7 +55,7 @@ CROSS APPLY (VALUES
     (CASE WHEN NULLIF(LTRIM(RTRIM(crs.scedCourseId)), '') IS NULL
            AND NULLIF(LTRIM(RTRIM(crs.stateCode)), '') IS NULL
           THEN 'No SCED course code' END),
-    (CASE WHEN crs.scedSubjectArea IN ('10','11','12','13','14','15','16','17','18','19','20','21')   -- CTE subject areas
+    (CASE WHEN crs.scedSubjectArea IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@cteSubjectAreas, ','))
            AND NULLIF(LTRIM(RTRIM(crs.cipCode)), '') IS NULL
           THEN 'CTE course with no CIP code' END)
 ) x(issue)

@@ -11,8 +11,9 @@
               incident date, event type, role, resolution, resolution date, issue
    Tables:    SchoolYear, BehaviorResolution, BehaviorResType, BehaviorRole, BehaviorEvent,
               BehaviorIncident, BehaviorType, Calendar, School, Enrollment, Person, Identity
-   Params:    @endYear, @schoolID  (change them in the PARAMETERS block below)
-   Check:     Role names in the IN (...) list must match your BehaviorRole.role values
+   Params:    @endYear, @schoolID, @noConsequenceRoles  (change them in the PARAMETERS
+              block below)
+   Check:     Role names in @noConsequenceRoles must match your BehaviorRole.role values
               exactly; Reporter is not a standard IC role and is there in case you use it.
               Names are shown because this is a fix-it list; do not share it further.
    --------------------------------------------------------------------------------------
@@ -21,8 +22,9 @@
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear  int = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID int = NULL;   -- NULL = all schools
+DECLARE @endYear            int = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID           int = NULL;   -- NULL = all schools
+DECLARE @noConsequenceRoles varchar(200) = 'Victim,Witness,Reporter';   -- role names that should never get a resolution, comma-separated
 -- ===========================================================================
 
 SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstName AS [First Name],
@@ -46,7 +48,7 @@ LEFT JOIN BehaviorResType  rt ON rt.typeID     = r.typeID
 OUTER APPLY (SELECT TOP 1 e.grade FROM Enrollment e
              WHERE e.personID = br.personID AND e.calendarID = be.calendarID
              ORDER BY e.startDate DESC) g
-WHERE br.role IN ('Victim', 'Witness', 'Reporter')   -- roles that should never get a resolution
+WHERE br.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@noConsequenceRoles, ','))
   AND c.endYear = @endYear
   AND c.exclude = 0 AND c.summerSchool = 0 AND s.exclude = 0
   AND (@schoolID IS NULL OR c.schoolID = @schoolID)

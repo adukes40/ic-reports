@@ -11,8 +11,9 @@
               bucket
    Tables:    SchoolYear, BehaviorIncident, BehaviorEvent, BehaviorType, BehaviorRole,
               Calendar, School, Person, Identity
-   Params:    @endYear, @schoolID, @asOf, @completeStatus ('CM')  (change them in the
-              PARAMETERS block below)
+   Params:    @endYear, @schoolID, @asOf, @completeStatus ('CM'), @offenderRoles,
+              @bucket1Days, @bucket2Days, @bucket3Days  (change them in the PARAMETERS
+              block below)
    Check:     Complete is assumed to be stored as 'CM' in BehaviorIncident.status (IC's
               standard: DF draft, SB submitted, IP in progress, CM complete). A blank status
               counts as open. Days are calendar days, not school days.
@@ -26,6 +27,10 @@ DECLARE @endYear        int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE activ
 DECLARE @schoolID       int  = NULL;   -- NULL = all schools
 DECLARE @asOf           date = CONVERT(date, GETDATE());
 DECLARE @completeStatus varchar(6) = 'CM';   -- status code that means complete
+DECLARE @offenderRoles  varchar(200) = 'Offender';   -- role names counted as the offender, comma-separated
+DECLARE @bucket1Days    int  = 2;    -- first age bucket ends at this many days open
+DECLARE @bucket2Days    int  = 5;    -- second age bucket ends at this many days open
+DECLARE @bucket3Days    int  = 10;   -- third age bucket ends at this many days open; anything older is 'Over'
 -- ===========================================================================
 
 SELECT c.schoolID AS [School ID], s.name AS [School], c.endYear AS [School Year],
@@ -38,12 +43,12 @@ SELECT c.schoolID AS [School ID], s.name AS [School], c.endYear AS [School Year]
        (SELECT COUNT(DISTINCT br.personID)
         FROM BehaviorEvent be
         JOIN BehaviorRole br ON br.eventID = be.eventID
-        WHERE be.incidentID = bi.incidentID AND br.role = 'Offender') AS [Offenders],
+        WHERE be.incidentID = bi.incidentID AND br.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@offenderRoles, ','))) AS [Offenders],
        d.daysOpen AS [Days Open],
-       CASE WHEN d.daysOpen <= 2  THEN '0-2 days'
-            WHEN d.daysOpen <= 5  THEN '3-5 days'
-            WHEN d.daysOpen <= 10 THEN '6-10 days'
-            ELSE 'Over 10 days' END AS [Age Bucket]
+       CASE WHEN d.daysOpen <= @bucket1Days THEN CONCAT('0-', @bucket1Days, ' days')
+            WHEN d.daysOpen <= @bucket2Days THEN CONCAT(@bucket1Days + 1, '-', @bucket2Days, ' days')
+            WHEN d.daysOpen <= @bucket3Days THEN CONCAT(@bucket2Days + 1, '-', @bucket3Days, ' days')
+            ELSE CONCAT('Over ', @bucket3Days, ' days') END AS [Age Bucket]
 FROM BehaviorIncident bi
 JOIN Calendar c ON c.calendarID = bi.calendarID
 JOIN School   s ON s.schoolID   = c.schoolID

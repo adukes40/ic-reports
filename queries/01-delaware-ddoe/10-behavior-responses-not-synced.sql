@@ -10,7 +10,8 @@
               by, days open
    Tables:    Calendar, School, BehaviorEvent, BehaviorIncident, BehaviorType, BehaviorRole,
               BehaviorResolution, Enrollment, Person, Identity
-   Params:    @endYear, @schoolID, @days (5)  (change them in the PARAMETERS block below)
+   Params:    @endYear, @schoolID, @days (5), @offenderRoles  (change them in the
+              PARAMETERS block below)
    Check:     Overlaps the first check in #9; this one adds the age of the gap.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
@@ -21,6 +22,7 @@
 DECLARE @endYear  int = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
 DECLARE @schoolID int = NULL;   -- NULL = all schools
 DECLARE @days     int = 5;      -- grace period after the event
+DECLARE @offenderRoles varchar(100) = 'Offender';   -- role names counted as the offender, comma-separated
 -- ===========================================================================
 
 SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstName AS [First Name],
@@ -33,7 +35,8 @@ SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstNa
        'Offender has no resolution after ' + CAST(@days AS varchar(5)) + ' days' AS [Issue]
 FROM BehaviorEvent be
 JOIN BehaviorIncident bi ON bi.incidentID = be.incidentID   -- date and referrer are on the incident
-JOIN BehaviorRole br ON br.eventID = be.eventID AND br.role = 'Offender'
+JOIN BehaviorRole br ON br.eventID = be.eventID
+                    AND br.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@offenderRoles, ','))
 JOIN Calendar c ON c.calendarID = be.calendarID
 JOIN School   s ON s.schoolID   = c.schoolID
 LEFT JOIN BehaviorType bt ON bt.typeID = be.typeID

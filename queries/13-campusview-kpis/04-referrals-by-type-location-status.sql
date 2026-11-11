@@ -11,13 +11,13 @@
               referrals, distinct students
    Tables:    SchoolYear, BehaviorIncident, BehaviorEvent, BehaviorRole, BehaviorType,
               Calendar, School, CampusAttribute, CampusDictionary
-   Params:    @endYear, @schoolID, @completeStatus (CM)  (change them in the PARAMETERS
-              block below)
-   Check:     A referral is one student in the Offender role on one event; the role name
-              must match your BehaviorRole.role values. Status codes are assumed to be DF
-              draft, SB submitted, IP in progress, CM complete; any other code shows as is.
-              Location shows the raw code if it is not in the BehaviorIncident location
-              dictionary.
+   Params:    @endYear, @schoolID, @completeStatus (CM), @offenderRoles  (change them in
+              the PARAMETERS block below)
+   Check:     A referral is one student in one of the @offenderRoles roles on one event;
+              the role names must match your BehaviorRole.role values. Status codes are
+              assumed to be DF draft, SB submitted, IP in progress, CM complete; any other
+              code shows as is. Location shows the raw code if it is not in the
+              BehaviorIncident location dictionary.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
@@ -27,6 +27,7 @@
 DECLARE @endYear        int        = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
 DECLARE @schoolID       int        = NULL;   -- NULL = all schools
 DECLARE @completeStatus varchar(6) = 'CM';   -- incident status code that means complete
+DECLARE @offenderRoles  varchar(200) = 'Offender';   -- role names counted as the offender, comma-separated
 -- ===========================================================================
 
 WITH ref AS (   -- one row per offender per event this year
@@ -39,7 +40,8 @@ WITH ref AS (   -- one row per offender per event this year
            CASE WHEN bi.status IS NULL OR bi.status <> @completeStatus THEN 'Open' ELSE 'Complete' END AS openOrComplete
     FROM BehaviorEvent be
     JOIN BehaviorIncident bi ON bi.incidentID = be.incidentID
-    JOIN BehaviorRole br     ON br.eventID = be.eventID AND br.role = 'Offender'
+    JOIN BehaviorRole br     ON br.eventID = be.eventID
+                            AND br.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@offenderRoles, ','))
     JOIN Calendar c          ON c.calendarID = be.calendarID
     JOIN School   s          ON s.schoolID   = c.schoolID
     LEFT JOIN BehaviorType bt ON bt.typeID = be.typeID

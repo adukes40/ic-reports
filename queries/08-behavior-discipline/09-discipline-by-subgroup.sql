@@ -13,27 +13,29 @@
    Tables:    SchoolYear, Enrollment, Calendar, School, Person, Identity, Lep,
               SpecialEDState, BehaviorEvent, BehaviorRole, BehaviorType, BehaviorResolution,
               BehaviorResType
-   Params:    @endYear, @schoolID, @asOf, @suspPattern ('%susp%')  (change them in the
-              PARAMETERS block below)
-   Check:     A referral is an incident where the student's role is exactly 'Offender'.
+   Params:    @endYear, @schoolID, @asOf, @suspPattern ('%susp%'), @offenderRoles,
+              @elStatus  (change them in the PARAMETERS block below)
+   Check:     A referral is an incident where the student's role is one of @offenderRoles.
               Suspensions are resolutions whose type name matches @suspPattern (in-school
               and out-of-school together); confirm against your resolution type list.
-              Enrolled = every student with a primary enrollment at the school this year up
-              to @asOf, so rates are per student ever enrolled. Race uses IC's federal codes
-              1-7. EL = Lep record with status 'LEP' on @asOf; special education = eligible
-              SpecialEDState record open on @asOf. Incident type rows use the whole school
-              as the denominator. Small groups can identify students: suppress before
-              sharing.
+              Enrolled = every student with a primary enrollment at the school this year
+              up to @asOf, so rates are per student ever enrolled. Race uses IC's federal
+              codes 1-7. EL = Lep record with status @elStatus on @asOf; special education
+              = eligible SpecialEDState record open on @asOf. Incident type rows use the
+              whole school as the denominator. Small groups can identify students:
+              suppress before sharing.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear     int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID    int  = NULL;   -- NULL = all schools
-DECLARE @asOf        date = CONVERT(date, GETDATE());   -- EL and special ed status are taken on this date
-DECLARE @suspPattern varchar(30) = '%susp%';            -- resolution type names counted as a suspension
+DECLARE @endYear       int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID      int  = NULL;   -- NULL = all schools
+DECLARE @asOf          date = CONVERT(date, GETDATE());   -- EL and special ed status are taken on this date
+DECLARE @suspPattern   varchar(30) = '%susp%';            -- resolution type names counted as a suspension
+DECLARE @offenderRoles varchar(200) = 'Offender';       -- role names counted as a referral, comma-separated
+DECLARE @elStatus      varchar(15) = 'LEP';               -- program status code that means the student is an English learner
 -- ===========================================================================
 
 WITH enr AS (   -- primary enrollments this year, latest per student per school numbered 1
@@ -61,7 +63,7 @@ refs AS (   -- one row per offender per event this year, with the suspensions gi
     JOIN Calendar c ON c.calendarID = be.calendarID
     JOIN School   s ON s.schoolID   = c.schoolID
     LEFT JOIN BehaviorType bt ON bt.typeID = be.typeID
-    WHERE br.role = 'Offender'   -- role counted as a referral
+    WHERE br.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@offenderRoles, ','))
       AND c.endYear = @endYear
       AND c.exclude = 0 AND c.summerSchool = 0 AND s.exclude = 0
       AND (@schoolID IS NULL OR c.schoolID = @schoolID)
@@ -81,7 +83,7 @@ stu AS (   -- one row per enrolled student per school with subgroup values and d
                 ELSE COALESCE(NULLIF(LTRIM(RTRIM(i.raceEthnicityFed)), ''), '(blank)') END AS race,
            COALESCE(NULLIF(LTRIM(RTRIM(i.hispanicEthnicity)), ''), '(blank)') AS hispanic,
            CASE WHEN EXISTS (SELECT 1 FROM Lep l
-                             WHERE l.personID = e.personID AND l.programStatus = 'LEP'
+                             WHERE l.personID = e.personID AND l.programStatus = @elStatus
                                AND l.identifiedDate <= @asOf
                                AND (l.exitDate IS NULL OR l.exitDate >= @asOf))
                 THEN 'Y' ELSE 'N' END AS el,

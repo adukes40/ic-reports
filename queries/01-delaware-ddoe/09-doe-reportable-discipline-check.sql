@@ -10,10 +10,11 @@
               resolution, issue
    Tables:    Calendar, School, BehaviorEvent, BehaviorIncident, BehaviorType, BehaviorRole,
               BehaviorResolution, BehaviorResType, Enrollment, Person, Identity
-   Params:    @startDate (July 1), @endDate (today), @schoolID, @suspPattern ('%susp%')
-              (change them in the PARAMETERS block below)
-   Check:     Offender is matched as role = 'Offender', and suspensions by resolution name
-              or state code. Confirm both against your codes.
+   Params:    @startDate (July 1), @endDate (today), @schoolID, @suspPattern ('%susp%'),
+              @offenderRoles  (change them in the PARAMETERS block below)
+   Check:     Offender is matched by role name (@offenderRoles), and suspensions by
+              resolution name or state code (@suspPattern). Confirm both against your
+              codes.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
@@ -24,6 +25,7 @@ DECLARE @startDate   date = DATEFROMPARTS((SELECT TOP 1 startYear FROM SchoolYea
 DECLARE @endDate     date = CONVERT(date, GETDATE());
 DECLARE @schoolID    int  = NULL;          -- NULL = all schools
 DECLARE @suspPattern varchar(30) = '%susp%';
+DECLARE @offenderRoles varchar(100) = 'Offender';   -- role names counted as the offender, comma-separated
 -- ===========================================================================
 
 WITH ev AS (
@@ -43,7 +45,7 @@ offender AS (
     SELECT ev.*, br.roleID, br.personID
     FROM ev
     JOIN BehaviorRole br ON br.eventID = ev.eventID
-    WHERE br.role = 'Offender'
+    WHERE br.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@offenderRoles, ','))
 ),
 problems AS (
     SELECT o.personID, o.eventID, o.calendarID, o.timestamp, o.eventType, o.stateEventCode,

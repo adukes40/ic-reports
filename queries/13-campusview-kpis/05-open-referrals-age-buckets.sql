@@ -10,12 +10,13 @@
               types, number of offenders, days open, age bucket
    Tables:    SchoolYear, BehaviorIncident, BehaviorEvent, BehaviorRole, BehaviorType,
               Calendar, School, CampusAttribute, CampusDictionary
-   Params:    @endYear, @schoolID, @asOf, @completeStatus (CM)  (change them in the
-              PARAMETERS block below)
+   Params:    @endYear, @schoolID, @asOf, @completeStatus (CM), @offenderRoles,
+              @bucket1Days, @bucket2Days, @bucket3Days  (change them in the PARAMETERS
+              block below)
    Check:     Open means the incident status is blank or anything other than
               @completeStatus, so drafts are included. Status codes are assumed to be DF
-              draft, SB submitted, IP in progress, CM complete. The role name Offender must
-              match your BehaviorRole.role values.
+              draft, SB submitted, IP in progress, CM complete. The role names in
+              @offenderRoles must match your BehaviorRole.role values.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
@@ -26,6 +27,10 @@ DECLARE @endYear        int        = (SELECT TOP 1 endYear FROM SchoolYear WHERE
 DECLARE @schoolID       int        = NULL;   -- NULL = all schools
 DECLARE @asOf           date       = CONVERT(date, GETDATE());   -- days open are counted to this date
 DECLARE @completeStatus varchar(6) = 'CM';   -- incident status code that means complete
+DECLARE @offenderRoles  varchar(200) = 'Offender';   -- role names counted as the offender, comma-separated
+DECLARE @bucket1Days    int  = 2;    -- first age bucket ends at this many days open
+DECLARE @bucket2Days    int  = 5;    -- second age bucket ends at this many days open
+DECLARE @bucket3Days    int  = 10;   -- third age bucket ends at this many days open; anything older is 'Over'
 -- ===========================================================================
 
 WITH inc AS (   -- this year's incidents that are not complete
@@ -49,10 +54,10 @@ SELECT inc.schoolID AS [School ID], inc.schoolName AS [School], inc.endYear AS [
        COALESCE(loc.name, NULLIF(inc.location, ''), '(no location)') AS [Location],
        ev.eventTypes AS [Event Types], ISNULL(oc.offenders, 0) AS [Offenders],
        inc.daysOpen AS [Days Open],
-       CASE WHEN inc.daysOpen <= 2  THEN '0 to 2 days'
-            WHEN inc.daysOpen <= 5  THEN '3 to 5 days'
-            WHEN inc.daysOpen <= 10 THEN '6 to 10 days'
-            ELSE 'Over 10 days' END AS [Age Bucket]
+       CASE WHEN inc.daysOpen <= @bucket1Days THEN CONCAT('0 to ', @bucket1Days, ' days')
+            WHEN inc.daysOpen <= @bucket2Days THEN CONCAT(@bucket1Days + 1, ' to ', @bucket2Days, ' days')
+            WHEN inc.daysOpen <= @bucket3Days THEN CONCAT(@bucket2Days + 1, ' to ', @bucket3Days, ' days')
+            ELSE CONCAT('Over ', @bucket3Days, ' days') END AS [Age Bucket]
 FROM inc
 OUTER APPLY (SELECT MAX(d.name) AS name           -- location name from the dictionary
              FROM CampusAttribute ca
@@ -66,6 +71,7 @@ OUTER APPLY (SELECT STRING_AGG(CAST(t.name AS varchar(max)), ', ') AS eventTypes
                    WHERE be.incidentID = inc.incidentID) t) ev
 OUTER APPLY (SELECT COUNT(DISTINCT br.personID) AS offenders
              FROM BehaviorEvent be
-             JOIN BehaviorRole br ON br.eventID = be.eventID AND br.role = 'Offender'
+             JOIN BehaviorRole br ON br.eventID = be.eventID
+                                     AND br.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@offenderRoles, ','))
              WHERE be.incidentID = inc.incidentID) oc
 ORDER BY inc.schoolName, inc.daysOpen DESC, inc.incidentID;

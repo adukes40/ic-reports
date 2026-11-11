@@ -9,10 +9,11 @@
    Output:    One row per student per flag: grade, flag type
    Tables:    SchoolYear, Enrollment, Calendar, School, Person, Identity,
               ProgramParticipation, Program
-   Params:    @endYear, @schoolID, @asOf  (change them in the PARAMETERS block below)
+   Params:    @endYear, @schoolID, @asOf, @flagPatterns  (change them in the PARAMETERS block
+              below)
    Check:     There is no custody table; this reads student Flags (Program /
-              ProgramParticipation) whose name matches a word in the kw list at the top of
-              the query. Compare that list with your district's flag names and edit it.
+              ProgramParticipation) whose name matches a pattern in @flagPatterns. Compare
+              that list with your district's flag names and change it.
               Custody notes kept only in comments or custom fields are not found.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
@@ -20,15 +21,16 @@
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear  int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID int  = NULL;   -- NULL = all schools
-DECLARE @asOf     date = CONVERT(date, GETDATE());
+DECLARE @endYear      int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID     int  = NULL;   -- NULL = all schools
+DECLARE @asOf         date = CONVERT(date, GETDATE());
+DECLARE @flagPatterns varchar(500) = '%custod%,%court%,%pick%up%,%no%contact%,%restrain%,%protect%,%PFA%';
+                                     -- flag name patterns for custody, court order, pickup or no contact, comma-separated (% = any text)
 -- ===========================================================================
 
-WITH kw AS (   -- words in a flag name that mark custody, court order, pickup or no contact
-    SELECT v.pattern
-    FROM (VALUES ('%custod%'), ('%court%'), ('%pick%up%'), ('%no%contact%'),
-                 ('%restrain%'), ('%protect%'), ('%PFA%')) v(pattern)
+WITH kw AS (   -- patterns in a flag name that mark custody, court order, pickup or no contact
+    SELECT LTRIM(RTRIM(value)) AS pattern
+    FROM STRING_SPLIT(@flagPatterns, ',')
 ),
 act AS (   -- one active primary enrollment per student on @asOf
     SELECT e.personID, c.schoolID, s.name AS schoolName, c.endYear, e.grade,

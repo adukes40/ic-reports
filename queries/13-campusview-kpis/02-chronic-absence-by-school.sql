@@ -12,8 +12,8 @@
               district-wide days, absences and flag, district chronic count / students / %
    Tables:    SchoolYear, Calendar, School, Day, Enrollment, v_AttDayDetail_Exact, Person,
               Identity
-   Params:    @endYear, @schoolID, @asOf, @winStart, @winEnd  (change them in the PARAMETERS
-              block below)
+   Params:    @endYear, @schoolID, @asOf, @winStart, @winEnd, @chronicPct  (change them in
+              the PARAMETERS block below)
    Check:     The district count is built per student across all their schools, so it will
               not equal the sum of the school counts; leave @schoolID NULL to get it. A
               full-day absence is absentDay = 1 in v_AttDayDetail_Exact. Before May 20 the
@@ -24,11 +24,12 @@
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear  int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID int  = NULL;   -- NULL = all schools
-DECLARE @asOf     date = CONVERT(date, GETDATE());            -- days after this are not counted
-DECLARE @winStart date = DATEFROMPARTS(@endYear - 1, 10, 1);  -- window start: Oct 1
-DECLARE @winEnd   date = DATEFROMPARTS(@endYear, 5, 20);      -- window end: May 20
+DECLARE @endYear    int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID   int  = NULL;   -- NULL = all schools
+DECLARE @asOf       date = CONVERT(date, GETDATE());            -- days after this are not counted
+DECLARE @winStart   date = DATEFROMPARTS(@endYear - 1, 10, 1);  -- window start: Oct 1
+DECLARE @winEnd     date = DATEFROMPARTS(@endYear, 5, 20);      -- window end: May 20
+DECLARE @chronicPct decimal(5,2) = 10.0;                    -- chronic when this percent or more of the student's days are absences
 -- ===========================================================================
 
 WITH cal AS (   -- this year's calendars
@@ -62,10 +63,10 @@ withPerson AS (   -- adds each student's totals across all schools; firstRow mar
            ROW_NUMBER() OVER (PARTITION BY ps.personID ORDER BY ps.schoolID) AS firstRow
     FROM perSchool ps
 ),
-flagged AS (   -- chronic = absences are at least 10% of the student's own days
+flagged AS (   -- chronic = absences are at least @chronicPct percent of the student's own days
     SELECT w.*,
-           CASE WHEN w.daysAbsent   * 10 >= w.daysEnrolled THEN 1 ELSE 0 END AS chronicSchool,
-           CASE WHEN w.personAbsent * 10 >= w.personDays   THEN 1 ELSE 0 END AS chronicDistrict
+           CASE WHEN w.daysAbsent   * 100 >= w.daysEnrolled * @chronicPct THEN 1 ELSE 0 END AS chronicSchool,
+           CASE WHEN w.personAbsent * 100 >= w.personDays   * @chronicPct THEN 1 ELSE 0 END AS chronicDistrict
     FROM withPerson w
 )
 SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstName AS [First Name],

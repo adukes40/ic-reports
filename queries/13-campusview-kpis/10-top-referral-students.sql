@@ -9,21 +9,23 @@
    Output:    One row per student: grade, school, offender referrals, latest referral date
    Tables:    SchoolYear, BehaviorRole, BehaviorEvent, BehaviorIncident, Calendar, School,
               Enrollment, Person, Identity
-   Params:    @endYear, @schoolID, @topN (50)  (change them in the PARAMETERS block below)
-   Check:     A referral is one event with the student in the Offender role; the role name
-              must match your BehaviorRole.role values. Each student is one row however
-              many schools they attended: the count covers all schools, and School and
-              Grade come from their latest enrollment this year (@schoolID filters on that
-              school).
+   Params:    @endYear, @schoolID, @topN (50), @offenderRoles  (change them in the
+              PARAMETERS block below)
+   Check:     A referral is one event with the student in one of the @offenderRoles roles;
+              the role names must match your BehaviorRole.role values. Each student is one
+              row however many schools they attended: the count covers all schools, and
+              School and Grade come from their latest enrollment this year (@schoolID
+              filters on that school).
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear  int = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID int = NULL;   -- NULL = all schools
-DECLARE @topN     int = 50;     -- how many students to return
+DECLARE @endYear       int = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID      int = NULL;   -- NULL = all schools
+DECLARE @topN          int = 50;     -- how many students to return
+DECLARE @offenderRoles varchar(200) = 'Offender';   -- role names counted as the offender, comma-separated
 -- ===========================================================================
 
 WITH ref AS (   -- one row per student per event where the student is an offender
@@ -33,7 +35,7 @@ WITH ref AS (   -- one row per student per event where the student is an offende
     JOIN BehaviorIncident bi ON bi.incidentID = be.incidentID
     JOIN Calendar c          ON c.calendarID = be.calendarID
     JOIN School   s          ON s.schoolID   = c.schoolID
-    WHERE br.role = 'Offender'
+    WHERE br.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@offenderRoles, ','))
       AND c.endYear = @endYear
       AND c.exclude = 0 AND c.summerSchool = 0 AND s.exclude = 0
 ),

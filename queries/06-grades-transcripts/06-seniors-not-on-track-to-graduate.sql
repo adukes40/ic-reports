@@ -11,13 +11,17 @@
    Tables:    SchoolYear, Enrollment, Calendar, School, TranscriptCredit,
               TranscriptCourse, Trial, Roster, Section, Course, GradingTaskCredit,
               CurriculumStandard, Person, Identity
-   Params:    @endYear, @schoolID, @asOf, @requiredCredits (24)  (change them in the
-              PARAMETERS block below; the credits per area are in the req list under it)
-   Check:     Requirements are not stored in Campus here, so they are typed in: 24 total
-              and the Delaware minimums per area (14 DE Admin. Code 505, 5.1). Change them
-              to your district's. The rule that one math credit is earned in the senior
-              year is not tested. The name patterns in the req list must match your credit
-              type names, or every senior shows as short in that area. Electives are
+   Params:    @endYear, @schoolID, @asOf, @requiredCredits (24), @seniorGrade, @reqEnglish,
+              @englishLike, @reqMath, @mathLike, @reqScience, @scienceLike, @reqSocial,
+              @socialLike, @reqWorldLang, @worldLangLike, @reqPE, @peLike, @reqHealth,
+              @healthLike, @reqCareer, @careerLike  (change them in the PARAMETERS block
+              below)
+   Check:     Requirements are not stored in Campus here, so they are parameters: 24 total
+              and the Delaware minimums per area (14 DE Admin. Code 505, 5.1). Change the
+              @req... values to your district's; 0 means the area is not required. The
+              rule that one math credit is earned in the senior year is not tested. The
+              @...Like name patterns must match your credit type names, or every senior
+              shows as short in that area. Electives are
               covered by the total. In progress = credit set on this year's scheduled
               courses that is not on the transcript yet; it carries a credit type only
               where the course's grading task has one.
@@ -31,19 +35,36 @@ DECLARE @endYear         int          = (SELECT TOP 1 endYear FROM SchoolYear WH
 DECLARE @schoolID        int          = NULL;   -- NULL = all schools
 DECLARE @asOf            date         = CONVERT(date, GETDATE());
 DECLARE @requiredCredits decimal(5,2) = 24;     -- total credits needed to graduate
+DECLARE @seniorGrade     varchar(10)  = '12';   -- grade name of your seniors
+DECLARE @reqEnglish      decimal(4,1) = 4.0;    -- English credits required (0 = not required)
+DECLARE @englishLike     varchar(50)  = 'English%';   -- credit type names that count as English (% = any text)
+DECLARE @reqMath         decimal(4,1) = 4.0;    -- mathematics credits required
+DECLARE @mathLike        varchar(50)  = 'Math%';      -- credit type names that count as mathematics
+DECLARE @reqScience      decimal(4,1) = 3.0;    -- science credits required
+DECLARE @scienceLike     varchar(50)  = 'Science%';   -- credit type names that count as science
+DECLARE @reqSocial       decimal(4,1) = 3.0;    -- social studies credits required
+DECLARE @socialLike      varchar(50)  = 'Social%';    -- credit type names that count as social studies
+DECLARE @reqWorldLang    decimal(4,1) = 2.0;    -- world language credits required
+DECLARE @worldLangLike   varchar(50)  = 'World%';     -- credit type names that count as world language
+DECLARE @reqPE           decimal(4,1) = 1.0;    -- physical education credits required
+DECLARE @peLike          varchar(50)  = 'Phys%';      -- credit type names that count as physical education
+DECLARE @reqHealth       decimal(4,1) = 0.5;    -- health credits required
+DECLARE @healthLike      varchar(50)  = 'Health%';    -- credit type names that count as health
+DECLARE @reqCareer       decimal(4,1) = 3.0;    -- career pathway credits required
+DECLARE @careerLike      varchar(50)  = 'Career%';    -- credit type names that count as career pathway
 -- ===========================================================================
 
-WITH req AS (   -- EDIT HERE: credit area, credit type name pattern, credits required
+WITH req AS (   -- credit area, credit type name pattern, credits required (set in the PARAMETERS block)
     SELECT v.area, v.pattern, v.required
-    FROM (VALUES ('English',            'English%', 4.0),
-                 ('Mathematics',        'Math%',    4.0),
-                 ('Science',            'Science%', 3.0),
-                 ('Social Studies',     'Social%',  3.0),
-                 ('World Language',     'World%',   2.0),
-                 ('Physical Education', 'Phys%',    1.0),
-                 ('Health',             'Health%',  0.5),
-                 ('Career Pathway',     'Career%',  3.0),
-                 ('Total credits',      '%',        @requiredCredits)) v(area, pattern, required)
+    FROM (VALUES ('English',            @englishLike,   @reqEnglish),
+                 ('Mathematics',        @mathLike,      @reqMath),
+                 ('Science',            @scienceLike,   @reqScience),
+                 ('Social Studies',     @socialLike,    @reqSocial),
+                 ('World Language',     @worldLangLike, @reqWorldLang),
+                 ('Physical Education', @peLike,        @reqPE),
+                 ('Health',             @healthLike,    @reqHealth),
+                 ('Career Pathway',     @careerLike,    @reqCareer),
+                 ('Total credits',      '%',            @requiredCredits)) v(area, pattern, required)
 ),
 act AS (   -- one active primary enrollment per 12th grader on @asOf
     SELECT e.personID, e.calendarID, c.schoolID, s.name AS schoolName, c.endYear, e.grade,
@@ -56,7 +77,7 @@ act AS (   -- one active primary enrollment per 12th grader on @asOf
       AND (@schoolID IS NULL OR c.schoolID = @schoolID)
       AND e.serviceType = 'P' AND ISNULL(e.noShow, 0) = 0
       AND e.startDate <= @asOf AND (e.endDate IS NULL OR e.endDate >= @asOf)
-      AND e.grade = '12'
+      AND e.grade = @seniorGrade
 ),
 earned AS (   -- transcript credits earned per senior and credit type, all years
     SELECT tcr.personID, tcr.standardID, SUM(tcr.creditsEarned) AS earned

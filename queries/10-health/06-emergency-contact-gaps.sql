@@ -10,7 +10,8 @@
               issue
    Tables:    SchoolYear, Enrollment, Calendar, School, Person, Identity, RelatedPair,
               Contact
-   Params:    @endYear, @schoolID, @asOf  (change them in the PARAMETERS block below)
+   Params:    @endYear, @schoolID, @asOf, @minWithPhone  (change them in the PARAMETERS block
+              below)
    Check:     Emergency contact = a current relationship with an Emergency Priority
               (Seq) number. Phone = home, cell or work on the contact's own record; the
               household phone doesn't count.
@@ -20,9 +21,10 @@
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear  int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID int  = NULL;   -- NULL = all schools
-DECLARE @asOf     date = CONVERT(date, GETDATE());
+DECLARE @endYear      int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID     int  = NULL;   -- NULL = all schools
+DECLARE @asOf         date = CONVERT(date, GETDATE());
+DECLARE @minWithPhone int  = 2;      -- emergency contacts with a phone each student should have
 -- ===========================================================================
 
 WITH act AS (   -- one active primary enrollment per student on @asOf
@@ -42,7 +44,8 @@ SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstNa
        ec.contacts AS [Emergency Contacts], ec.withPhone AS [With Phone],
        CASE WHEN ec.contacts = 0  THEN 'No emergency contacts'
             WHEN ec.withPhone = 0 THEN 'No emergency contact has a phone'
-            ELSE 'Only one emergency contact has a phone' END AS [Issue]
+            WHEN ec.withPhone = 1 THEN 'Only one emergency contact has a phone'
+            ELSE 'Fewer than ' + CAST(@minWithPhone AS varchar(10)) + ' emergency contacts have a phone' END AS [Issue]
 FROM act a
 JOIN Person p     ON p.personID   = a.personID
 JOIN [Identity] i ON i.identityID = p.currentIdentityID
@@ -62,5 +65,5 @@ CROSS APPLY (
       AND (rp.endDate   IS NULL OR rp.endDate   >= @asOf)
 ) ec
 WHERE a.rn = 1
-  AND ec.withPhone < 2
+  AND ec.withPhone < @minWithPhone
 ORDER BY a.schoolName, a.grade, i.lastName, i.firstName;

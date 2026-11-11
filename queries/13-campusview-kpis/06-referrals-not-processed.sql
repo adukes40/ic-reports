@@ -10,11 +10,11 @@
               incident date, event type, incident status, days open
    Tables:    SchoolYear, BehaviorIncident, BehaviorEvent, BehaviorRole, BehaviorType,
               BehaviorResolution, Calendar, School, Enrollment, Person, Identity
-   Params:    @endYear, @schoolID, @asOf, @completeStatus (CM)  (change them in the
-              PARAMETERS block below)
+   Params:    @endYear, @schoolID, @asOf, @completeStatus (CM), @offenderRoles  (change
+              them in the PARAMETERS block below)
    Check:     Not complete means the incident status is blank or anything other than
-              @completeStatus. Status codes are assumed to be DF draft, SB submitted, IP in
-              progress, CM complete. The role name Offender must match your
+              @completeStatus. Status codes are assumed to be DF draft, SB submitted, IP
+              in progress, CM complete. The role names in @offenderRoles must match your
               BehaviorRole.role values.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
@@ -26,6 +26,7 @@ DECLARE @endYear        int        = (SELECT TOP 1 endYear FROM SchoolYear WHERE
 DECLARE @schoolID       int        = NULL;   -- NULL = all schools
 DECLARE @asOf           date       = CONVERT(date, GETDATE());   -- days open are counted to this date
 DECLARE @completeStatus varchar(6) = 'CM';   -- incident status code that means complete
+DECLARE @offenderRoles  varchar(200) = 'Offender';   -- role names counted as the offender, comma-separated
 -- ===========================================================================
 
 SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstName AS [First Name],
@@ -39,7 +40,8 @@ SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstNa
        DATEDIFF(day, bi.timestamp, @asOf) AS [Days Open]
 FROM BehaviorEvent be
 JOIN BehaviorIncident bi ON bi.incidentID = be.incidentID
-JOIN BehaviorRole br     ON br.eventID = be.eventID AND br.role = 'Offender'
+JOIN BehaviorRole br     ON br.eventID = be.eventID
+                        AND br.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@offenderRoles, ','))
 JOIN Calendar c          ON c.calendarID = be.calendarID
 JOIN School   s          ON s.schoolID   = c.schoolID
 LEFT JOIN BehaviorType bt ON bt.typeID = be.typeID

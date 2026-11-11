@@ -9,7 +9,8 @@
    Output:    One row per account: username, name, current assignment school (blank if
               none), last login, days since login, account creation date, issue
    Tables:    SchoolYear, UserAccount, Person, Identity, EmploymentAssignment, School
-   Params:    @endYear, @schoolID, @asOf, @days  (change them in the PARAMETERS block below)
+   Params:    @endYear, @schoolID, @asOf, @days, @portalHomepage  (change them in the
+              PARAMETERS block below)
    Check:     Staff accounts are taken to be those whose homepage is blank or does not
               contain 'portal'. Last login comes from UserAccount.lastLoginTimestamp, which
               is blank for accounts that have not logged in since IC began recording it, so
@@ -20,10 +21,11 @@
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear  int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID int  = NULL;   -- NULL = all accounts; a school ID = staff assigned there now
-DECLARE @asOf     date = CONVERT(date, GETDATE());
-DECLARE @days     int  = 90;     -- days without a login before an account counts as stale
+DECLARE @endYear        int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID       int  = NULL;   -- NULL = all accounts; a school ID = staff assigned there now
+DECLARE @asOf           date = CONVERT(date, GETDATE());
+DECLARE @days           int  = 90;     -- days without a login before an account counts as stale
+DECLARE @portalHomepage varchar(100) = '%portal%';   -- homepage of a portal account (these are left out); % is a wildcard
 -- ===========================================================================
 
 WITH home AS (   -- each person's current school assignment (latest start)
@@ -46,7 +48,7 @@ LEFT JOIN [Identity] i ON i.identityID = p.currentIdentityID
 LEFT JOIN home h       ON h.personID   = ua.personID AND h.rn = 1
 WHERE ua.disable = 0
   AND (ua.expiresDate IS NULL OR ua.expiresDate > @asOf)
-  AND (ua.homepage IS NULL OR ua.homepage NOT LIKE '%portal%')   -- staff accounts only
+  AND (ua.homepage IS NULL OR ua.homepage NOT LIKE @portalHomepage)   -- staff accounts only
   AND (ua.lastLoginTimestamp IS NULL OR ua.lastLoginTimestamp < DATEADD(day, -@days, @asOf))
   AND (@schoolID IS NULL OR h.schoolID = @schoolID)
 ORDER BY h.schoolName, ua.lastLoginTimestamp, i.lastName, i.firstName;

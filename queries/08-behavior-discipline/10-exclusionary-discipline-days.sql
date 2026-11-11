@@ -12,16 +12,16 @@
    Tables:    SchoolYear, Enrollment, Calendar, School, Person, Identity, Lep,
               SpecialEDState, BehaviorResolution, BehaviorResType, BehaviorRole, Day
    Params:    @endYear, @schoolID, @asOf, @ossPattern ('%out%susp%'), @expPattern
-              ('%expul%')  (change them in the PARAMETERS block below)
+              ('%expul%'), @elStatus  (change them in the PARAMETERS block below)
    Check:     OSS and expulsion are found by resolution type name matching the two
               patterns; confirm against your resolution type list (a type named only 'OSS'
-              needs @ossPattern changed). Days = the resolution's School Days Duration when
-              filled, otherwise the instructional days in the calendar from its start date
-              to its end date; a resolution with no end date counts 0 days. Enrolled = every
-              student with a primary enrollment at the school this year up to @asOf. Race
-              uses IC's federal codes 1-7. EL = Lep record with status 'LEP' on @asOf;
-              special education = eligible SpecialEDState record open on @asOf. Small
-              groups can identify students: suppress before sharing.
+              needs @ossPattern changed). Days = the resolution's School Days Duration
+              when filled, otherwise the instructional days in the calendar from its start
+              date to its end date; a resolution with no end date counts 0 days. Enrolled
+              = every student with a primary enrollment at the school this year up to
+              @asOf. Race uses IC's federal codes 1-7. EL = Lep record with status
+              @elStatus on @asOf; special education = eligible SpecialEDState record open
+              on @asOf. Small groups can identify students: suppress before sharing.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
@@ -33,6 +33,7 @@ DECLARE @schoolID   int  = NULL;   -- NULL = all schools
 DECLARE @asOf       date = CONVERT(date, GETDATE());   -- EL and special ed status are taken on this date
 DECLARE @ossPattern varchar(30) = '%out%susp%';        -- resolution type names counted as out-of-school suspension
 DECLARE @expPattern varchar(30) = '%expul%';           -- resolution type names counted as expulsion
+DECLARE @elStatus   varchar(15) = 'LEP';               -- program status code that means the student is an English learner
 -- ===========================================================================
 
 WITH enr AS (   -- primary enrollments this year, latest per student per school numbered 1
@@ -82,7 +83,7 @@ stu AS (   -- one row per enrolled student per school with subgroup values and d
                 ELSE COALESCE(NULLIF(LTRIM(RTRIM(i.raceEthnicityFed)), ''), '(blank)') END AS race,
            COALESCE(NULLIF(LTRIM(RTRIM(i.hispanicEthnicity)), ''), '(blank)') AS hispanic,
            CASE WHEN EXISTS (SELECT 1 FROM Lep l
-                             WHERE l.personID = e.personID AND l.programStatus = 'LEP'
+                             WHERE l.personID = e.personID AND l.programStatus = @elStatus
                                AND l.identifiedDate <= @asOf
                                AND (l.exitDate IS NULL OR l.exitDate >= @asOf))
                 THEN 'Y' ELSE 'N' END AS el,

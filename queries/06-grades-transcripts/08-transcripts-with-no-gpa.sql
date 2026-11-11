@@ -10,7 +10,7 @@
               issue (course columns are blank on the student-level rows)
    Tables:    SchoolYear, Enrollment, Calendar, School, TranscriptCourse, Course, Person,
               Identity
-   Params:    @endYear, @schoolID  (change them in the PARAMETERS block below)
+   Params:    @endYear, @schoolID, @hsGrades  (change them in the PARAMETERS block below)
    Check:     Covers students enrolled at any time in @endYear. The row checks look only
               at @endYear transcript rows; the student check looks at every year. A row
               "should carry GPA weight" when a course with the same number in @endYear has
@@ -23,8 +23,9 @@
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear  int = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID int = NULL;   -- NULL = all schools
+DECLARE @endYear  int          = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID int          = NULL;   -- NULL = all schools
+DECLARE @hsGrades varchar(200) = '09,10,11,12';   -- high school grade names, comma-separated
 -- ===========================================================================
 
 WITH stu AS (   -- latest primary enrollment in @endYear per student
@@ -58,7 +59,7 @@ probs AS (   -- one row per problem
            'Student has transcript rows but no cumulative GPA'
     FROM stu st
     WHERE st.rn = 1
-      AND st.grade IN ('09', '10', '11', '12')
+      AND st.grade IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@hsGrades, ','))
       AND EXISTS (SELECT 1 FROM TranscriptCourse tc WHERE tc.personID = st.personID)
       AND NOT EXISTS (SELECT 1 FROM TranscriptCourse tc
                       WHERE tc.personID = st.personID AND tc.gpaWeight > 0 AND tc.gpaValue IS NOT NULL)

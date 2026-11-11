@@ -9,8 +9,10 @@
    Output:    One row per problem: school, grade, program, program start and end, issue
    Tables:    SchoolYear, Enrollment, Calendar, School, ProgramParticipation, Program,
               Person, Identity
-   Params:    @endYear, @schoolID  (change them in the PARAMETERS block below)
-   Check:     The school year is taken as July 1 to June 30. Every enrollment in any
+   Params:    @endYear, @schoolID, @yearStart, @yearEnd  (change them in the PARAMETERS
+              block below)
+   Check:     The school year is taken as July 1 to June 30 (@yearStart, @yearEnd). Every
+              enrollment in any
               year counts except no-shows, so a program dated in the summer between two
               enrollments will be listed. Programs have no grade range in IC, so a grade
               the program does not serve is not checked.
@@ -20,8 +22,10 @@
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear  int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID int  = NULL;   -- NULL = all schools
+DECLARE @endYear   int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID  int  = NULL;   -- NULL = all schools
+DECLARE @yearStart date = DATEFROMPARTS(@endYear - 1, 7, 1);   -- first day of the school year
+DECLARE @yearEnd   date = DATEFROMPARTS(@endYear, 6, 30);      -- last day of the school year
 -- ===========================================================================
 
 WITH stu AS (   -- latest primary enrollment per student this year, active or ended
@@ -39,8 +43,8 @@ part AS (   -- program participation records in effect at some point this school
     SELECT pp.personID, pr.name AS program, pp.startDate, pp.endDate
     FROM ProgramParticipation pp
     JOIN Program pr ON pr.programID = pp.programID
-    WHERE pp.startDate <= DATEFROMPARTS(@endYear, 6, 30)
-      AND (pp.endDate IS NULL OR pp.endDate >= DATEFROMPARTS(@endYear - 1, 7, 1))
+    WHERE pp.startDate <= @yearEnd
+      AND (pp.endDate IS NULL OR pp.endDate >= @yearStart)
 )
 SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstName AS [First Name],
        st.schoolID AS [School ID], st.schoolName AS [School], st.endYear AS [School Year], st.grade AS [Grade],

@@ -12,34 +12,31 @@
               group name), the tools with R/W/A/D, issue
    Tables:    SchoolYear, UserAccount, Person, Identity, EmploymentAssignment, School,
               UserGroup, UserGroupMember, UserToolRights, UserGroupToolRights, CampusTool
-   Params:    @endYear, @schoolID, @asOf  (change them in the PARAMETERS block below)
-   Check:     The account administration tools are picked by name in the adminTools block
-              (User Account..., User Group..., Product Security, Login As User, Tool
-              Rights, Calendar Rights, Security Preferences): compare those patterns with
-              your tool names and edit the list. Product security roles are user groups
-              flagged as security roles. Everyone listed is not a problem: the point is to
-              confirm each person should still be on the list.
+   Params:    @endYear, @schoolID, @asOf, @adminToolPatterns  (change them in the PARAMETERS
+              block below)
+   Check:     The account administration tools are picked by name with the patterns in
+              @adminToolPatterns (User Account..., User Group..., Product Security, Login
+              As User, Tool Rights, Calendar Rights, Security Preferences): compare those
+              patterns with your tool names and change the list. Product security roles
+              are user groups flagged as security roles. Everyone listed is not a problem:
+              the point is to confirm each person should still be on the list.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear  int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID int  = NULL;   -- NULL = all accounts; a school ID = staff assigned there now
-DECLARE @asOf     date = CONVERT(date, GETDATE());
+DECLARE @endYear           int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID          int  = NULL;   -- NULL = all accounts; a school ID = staff assigned there now
+DECLARE @asOf              date = CONVERT(date, GETDATE());
+DECLARE @adminToolPatterns varchar(500) = 'User Account%,User Group%,%Product Security%,Login As User%,%Tool Rights%,%Calendar Rights%,%Security Preferences%';
+                                          -- names of the tools that manage accounts, groups and rights, comma-separated (% = any text)
 -- ===========================================================================
 
-WITH adminTools AS (   -- tools that manage accounts, groups and rights (edit the name patterns)
+WITH adminTools AS (   -- tools that manage accounts, groups and rights (names matching @adminToolPatterns)
     SELECT ct.toolID, ct.name
     FROM CampusTool ct
-    WHERE ct.name LIKE 'User Account%'
-       OR ct.name LIKE 'User Group%'
-       OR ct.name LIKE '%Product Security%'
-       OR ct.name LIKE 'Login As User%'
-       OR ct.name LIKE '%Tool Rights%'
-       OR ct.name LIKE '%Calendar Rights%'
-       OR ct.name LIKE '%Security Preferences%'
+    WHERE EXISTS (SELECT 1 FROM STRING_SPLIT(@adminToolPatterns, ',') p WHERE ct.name LIKE LTRIM(RTRIM(p.value)))
 ),
 home AS (   -- each person's current school assignment (latest start)
     SELECT ea.personID, ea.schoolID, s.name AS schoolName,

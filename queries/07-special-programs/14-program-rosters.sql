@@ -11,11 +11,12 @@
               start date
    Tables:    SchoolYear, Enrollment, Calendar, School, ProgramParticipation, Program,
               Lep, Homeless, FosterCare, Person, Identity
-   Params:    @endYear, @schoolID, @asOf, @programID  (change them in the PARAMETERS
-              block below)
+   Params:    @endYear, @schoolID, @asOf, @programID, @elExitedLike, @elNotLike,
+              @elPendingLike  (change them in the PARAMETERS block below)
    Check:     Run once with @programID = NULL to see your program IDs. EL uses ID -1,
               homeless -2, foster care -3. EL means an EL record with no exit date whose
-              status does not start with 'Exit', 'Not' or 'Pend' (IC's standard codes).
+              status does not match @elExitedLike, @elNotLike or @elPendingLike (the
+              defaults 'Exit', 'Not' and 'Pend' are IC's standard codes).
               Military-connected and gifted students appear only if they are kept as a
               program or flag; their own IC tables are not in use here.
    --------------------------------------------------------------------------------------
@@ -24,10 +25,13 @@
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear   int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID  int  = NULL;   -- NULL = all schools
-DECLARE @asOf      date = CONVERT(date, GETDATE());
-DECLARE @programID int  = NULL;   -- NULL = all programs; -1 = EL, -2 = homeless, -3 = foster care
+DECLARE @endYear       int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID      int  = NULL;   -- NULL = all schools
+DECLARE @asOf          date = CONVERT(date, GETDATE());
+DECLARE @programID     int  = NULL;   -- NULL = all programs; -1 = EL, -2 = homeless, -3 = foster care
+DECLARE @elExitedLike  varchar(20) = 'Exit%';   -- EL program status code(s) that mean exited / reclassified
+DECLARE @elNotLike     varchar(20) = 'Not%';    -- EL program status code(s) that mean not an English learner
+DECLARE @elPendingLike varchar(20) = 'Pend%';   -- EL program status code(s) that mean pending
 -- ===========================================================================
 
 WITH act AS (   -- one active primary enrollment per student on @asOf
@@ -51,9 +55,9 @@ member AS (   -- program records in effect on @asOf, from program participation 
     SELECT l.personID, -1, 'EL', CONVERT(date, l.identifiedDate)
     FROM Lep l
     WHERE l.identifiedDate <= @asOf AND l.exitDate IS NULL
-      AND l.programStatus NOT LIKE 'Exit%'     -- exited
-      AND l.programStatus NOT LIKE 'Not%'      -- not EL
-      AND l.programStatus NOT LIKE 'Pend%'     -- pending
+      AND l.programStatus NOT LIKE @elExitedLike    -- exited
+      AND l.programStatus NOT LIKE @elNotLike     -- not EL
+      AND l.programStatus NOT LIKE @elPendingLike    -- pending
     UNION ALL
     SELECT h.personID, -2, 'Homeless', CONVERT(date, h.startDate)
     FROM Homeless h

@@ -11,12 +11,13 @@
               enrollment end date and end status, cohort counts by status, 4-year rate %
    Tables:    SchoolYear, Graduation, Enrollment, Calendar, School,
               EnrollmentEndStatusType, Person, Identity
-   Params:    @endYear, @schoolID, @asOf, @cohortYears  (change them in the PARAMETERS
-              block below)
+   Params:    @endYear, @schoolID, @asOf, @cohortYears, @lastGradMonth  (change them in
+              the PARAMETERS block below)
    Check:     Cohort year is taken from the Graduation tab (Cohort Year NCLB, else Cohort
               Year NGA) and is read as the year the student is due to graduate; students
               with neither are left out. Graduated = a diploma date on the Graduation
-              tab; a diploma dated through August counts in that school year. Students
+              tab; a diploma dated through @lastGradMonth (August) counts in that school
+              year. Students
               are counted at the school of their latest enrollment. "Left" includes
               transfers out, which the state removes from the cohort: use Last End
               Status to separate them, so this rate will not equal the published DDOE
@@ -28,15 +29,16 @@
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear     int          = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID    int          = NULL;   -- NULL = all schools
-DECLARE @asOf        date         = CONVERT(date, GETDATE());
-DECLARE @cohortYears varchar(100) = NULL;   -- cohort years, e.g. '2024,2025'; NULL = this year and the two before
+DECLARE @endYear       int          = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID      int          = NULL;   -- NULL = all schools
+DECLARE @asOf          date         = CONVERT(date, GETDATE());
+DECLARE @cohortYears   varchar(100) = NULL;   -- cohort years, e.g. '2024,2025'; NULL = this year and the two before
+DECLARE @lastGradMonth int          = 8;      -- last month a summer diploma still counts in the school year just ended (8 = August)
 -- ===========================================================================
 
 WITH grad AS (   -- one graduation record per student in the chosen cohorts
     SELECT g.personID, x.cohortYear, g.diplomaDate, g.diplomaType,
-           YEAR(DATEADD(month, 4, g.diplomaDate)) AS diplomaYear,   -- school year ending after the diploma date
+           YEAR(DATEADD(month, 12 - @lastGradMonth, g.diplomaDate)) AS diplomaYear,   -- school year ending after the diploma date
            ROW_NUMBER() OVER (PARTITION BY g.personID ORDER BY g.graduationID DESC) AS rn
     FROM Graduation g
     CROSS APPLY (SELECT TRY_CONVERT(int, COALESCE(NULLIF(LTRIM(RTRIM(g.cohortYearNCLB)), ''),

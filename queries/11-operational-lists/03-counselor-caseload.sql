@@ -11,8 +11,8 @@
    Tables:    SchoolYear, Enrollment, Calendar, School, Person, Identity, TeamMember,
               v_AttDaySummary_Exact, BehaviorEvent, BehaviorRole, GradingScore,
               GradingTask, Term
-   Params:    @endYear, @schoolID, @asOf, @counselorID, @counselorLike, @task,
-              @term  (change them in the PARAMETERS block below)
+   Params:    @endYear, @schoolID, @asOf, @counselorID, @counselorLike, @task, @term,
+              @countedRoles, @dfMarks  (change them in the PARAMETERS block below)
    Check:     Counselor assignment is read from the student's Team Members (TeamMember)
               where the role or title matches @counselorLike; confirm that is where your
               district assigns counselors and what the role is called. @counselorID is the
@@ -32,6 +32,8 @@ DECLARE @counselorID   int  = NULL;   -- counselor's personID; NULL = all counse
 DECLARE @counselorLike varchar(50) = '%Counselor%';   -- team member role or title; % is a wildcard
 DECLARE @task          varchar(50) = '%Quarter%';     -- grading task name; % is a wildcard
 DECLARE @term          varchar(10) = NULL;            -- term name, e.g. 'Q1'; NULL = every term this year
+DECLARE @countedRoles  varchar(200) = 'Offender,Participant';   -- behavior role names counted as a referral, comma-separated
+DECLARE @dfMarks       varchar(200) = 'D+,D,D-,F';    -- D and F marks, comma-separated
 -- ===========================================================================
 
 WITH act AS (   -- one active primary enrollment per student on @asOf
@@ -69,7 +71,7 @@ ref AS (   -- behavior incidents per student this year
     JOIN BehaviorRole br ON br.eventID = be.eventID
     JOIN Calendar c      ON c.calendarID = be.calendarID
     JOIN School   s      ON s.schoolID   = c.schoolID
-    WHERE br.role IN ('Offender', 'Participant')   -- roles to count
+    WHERE br.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@countedRoles, ','))   -- roles to count
       AND c.endYear = @endYear
       AND c.exclude = 0 AND c.summerSchool = 0 AND s.exclude = 0
     GROUP BY br.personID
@@ -81,7 +83,7 @@ df AS (   -- D and F grades per student for @task in @term
     JOIN Term tm        ON tm.termID    = gs.termID
     JOIN Calendar c     ON c.calendarID = gs.calendarID
     JOIN School   s     ON s.schoolID   = c.schoolID
-    WHERE gs.score IN ('D+', 'D', 'D-', 'F')       -- D and F marks
+    WHERE gs.score IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@dfMarks, ','))   -- D and F marks
       AND gt.name LIKE @task
       AND (@term IS NULL OR tm.name = @term)
       AND c.endYear = @endYear

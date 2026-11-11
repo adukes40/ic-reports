@@ -8,12 +8,13 @@
    Output:    One row per student: number of failing courses, the courses with the mark
    Tables:    SchoolYear, Enrollment, Calendar, School, ScheduleStructure, TermSchedule,
               Term, GradingScore, GradingTask, Section, Trial, Course, Person, Identity
-   Params:    @endYear, @schoolID, @asOf, @term, @task, @failMarks  (change them in the
-              PARAMETERS block below)
+   Params:    @endYear, @schoolID, @asOf, @term, @task, @failMarks, @hsGrades  (change
+              them in the PARAMETERS block below)
    Check:     @failMarks must list your failing marks exactly as posted (default F); a
-              school that posts only numbers needs its own list. Uses the posted grade,
-              or the in-progress grade when nothing is posted. @task is matched against
-              your GradingTask names; blank means every task.
+              school that posts only numbers needs its own list. @hsGrades must list your
+              high school grade names. Uses the posted grade, or the in-progress grade
+              when nothing is posted. @task is matched against your GradingTask names;
+              blank means every task.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
@@ -26,6 +27,7 @@ DECLARE @asOf      date         = CONVERT(date, GETDATE());
 DECLARE @term      varchar(10)  = NULL;   -- term name, e.g. 'Q1'; NULL = the term in session on @asOf
 DECLARE @task      varchar(100) = '';     -- part of the grading task name, e.g. 'Quarter'; '' = every task
 DECLARE @failMarks varchar(200) = 'F';    -- failing marks, comma separated
+DECLARE @hsGrades  varchar(200) = '09,10,11,12';   -- high school grade names, comma-separated
 -- ===========================================================================
 
 WITH act AS (   -- one active primary enrollment per grade 9-12 student on @asOf
@@ -39,7 +41,7 @@ WITH act AS (   -- one active primary enrollment per grade 9-12 student on @asOf
       AND (@schoolID IS NULL OR c.schoolID = @schoolID)
       AND e.serviceType = 'P' AND ISNULL(e.noShow, 0) = 0
       AND e.startDate <= @asOf AND (e.endDate IS NULL OR e.endDate >= @asOf)
-      AND e.grade IN ('09', '10', '11', '12')
+      AND e.grade IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@hsGrades, ','))
 ),
 trm AS (   -- the term to report on in each calendar
     SELECT ss.calendarID, t.termID

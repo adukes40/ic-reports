@@ -11,8 +11,8 @@
               school, guardian phones, IEP / 504 / EL as Y or N
    Tables:    SchoolYear, Enrollment, Calendar, School, Person, Identity, RelatedPair,
               Contact, Plan, PlanType, Section504, Lep
-   Params:    @endYear, @schoolID, @calendarID, @asOf  (change them in the PARAMETERS block
-              below)
+   Params:    @endYear, @schoolID, @calendarID, @asOf, @planNameLike, @elStatus  (change
+              them in the PARAMETERS block below)
    Check:     Summer calendars are those with the Summer School box checked. Home school is
               the student's most recent primary enrollment in a regular calendar. IEP = a
               locked special ed plan whose type name or abbreviation contains 'IEP', active
@@ -24,10 +24,12 @@
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear    int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID   int  = NULL;   -- NULL = all schools
-DECLARE @calendarID int  = NULL;   -- one summer calendar; NULL = every summer calendar in @endYear
-DECLARE @asOf       date = CONVERT(date, GETDATE());   -- plans and guardians current on this date
+DECLARE @endYear      int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID     int  = NULL;   -- NULL = all schools
+DECLARE @calendarID   int  = NULL;   -- one summer calendar; NULL = every summer calendar in @endYear
+DECLARE @asOf         date = CONVERT(date, GETDATE());   -- plans and guardians current on this date
+DECLARE @planNameLike varchar(50) = '%IEP%';   -- special ed plan type names or abbreviations that are IEPs (% = any text)
+DECLARE @elStatus     varchar(15) = 'LEP';     -- program status code that means the student is an English learner
 -- ===========================================================================
 
 WITH ss AS (   -- enrollments in summer school calendars
@@ -52,7 +54,7 @@ SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstNa
                          JOIN PlanType pt ON pt.typeID = pl.typeID
                          WHERE pl.personID = ss.personID
                            AND pt.module = 'specialEd'
-                           AND (pt.name LIKE '%IEP%' OR pt.abbreviation LIKE '%IEP%')
+                           AND (pt.name LIKE @planNameLike OR pt.abbreviation LIKE @planNameLike)
                            AND pl.locked = 1
                            AND pl.startDate <= @asOf AND (pl.endDate IS NULL OR pl.endDate >= @asOf))
             THEN 'Y' ELSE 'N' END AS [IEP],
@@ -61,7 +63,7 @@ SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstNa
                            AND sf.startDate <= @asOf AND (sf.endDate IS NULL OR sf.endDate >= @asOf))
             THEN 'Y' ELSE 'N' END AS [504],
        CASE WHEN EXISTS (SELECT 1 FROM Lep l
-                         WHERE l.personID = ss.personID AND l.programStatus = 'LEP'
+                         WHERE l.personID = ss.personID AND l.programStatus = @elStatus
                            AND l.identifiedDate <= @asOf AND (l.exitDate IS NULL OR l.exitDate > @asOf))
             THEN 'Y' ELSE 'N' END AS [EL]
 FROM ss

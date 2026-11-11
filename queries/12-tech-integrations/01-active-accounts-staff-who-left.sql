@@ -10,7 +10,8 @@
               assignment ended, district employment status, last login, issue
    Tables:    SchoolYear, UserAccount, Person, Identity, EmploymentAssignment, Employment,
               School, Enrollment, Calendar
-   Params:    @endYear, @schoolID, @asOf  (change them in the PARAMETERS block below)
+   Params:    @endYear, @schoolID, @asOf, @portalHomepage  (change them in the PARAMETERS
+              block below)
    Check:     Staff accounts are taken to be those whose homepage is blank or does not
               contain 'portal' (parent and student portal accounts are left out). District
               office staff with an employment record but no school assignment are listed
@@ -22,9 +23,10 @@
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @endYear  int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
-DECLARE @schoolID int  = NULL;   -- NULL = all schools (matches the last assignment's school)
-DECLARE @asOf     date = CONVERT(date, GETDATE());
+DECLARE @endYear        int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
+DECLARE @schoolID       int  = NULL;   -- NULL = all schools (matches the last assignment's school)
+DECLARE @asOf           date = CONVERT(date, GETDATE());
+DECLARE @portalHomepage varchar(100) = '%portal%';   -- homepage of a portal account (these are left out); % is a wildcard
 -- ===========================================================================
 
 WITH lastAssign AS (   -- each person's latest school assignment, open ones first
@@ -59,7 +61,7 @@ LEFT JOIN lastAssign la ON la.personID = ua.personID AND la.rn = 1
 LEFT JOIN emp em        ON em.personID = ua.personID
 WHERE ua.disable = 0
   AND (ua.expiresDate IS NULL OR ua.expiresDate > @asOf)
-  AND (ua.homepage IS NULL OR ua.homepage NOT LIKE '%portal%')   -- staff accounts only
+  AND (ua.homepage IS NULL OR ua.homepage NOT LIKE @portalHomepage)   -- staff accounts only
   AND (la.personID IS NULL OR la.endDate < @asOf)
   AND (@schoolID IS NULL OR la.schoolID = @schoolID)
   AND NOT EXISTS (

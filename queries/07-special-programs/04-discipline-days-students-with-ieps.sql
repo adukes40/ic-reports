@@ -12,9 +12,10 @@
    Tables:    SchoolYear, Enrollment, Calendar, School, Plan, PlanType,
               BehaviorResolution, BehaviorResType, Day, Person, Identity
    Params:    @endYear, @schoolID, @asOf, @ossPattern, @expulsionPattern,
-              @planNameLike  (change them in the PARAMETERS block below)
-   Check:     Removals are resolutions whose type name matches @ossPattern, starts with
-              OSS, or matches @expulsionPattern; compare with your resolution type names
+              @planNameLike, @ossCodePattern, @warnDays, @flagDays  (change them in the
+              PARAMETERS block below)
+   Check:     Removals are resolutions whose type name matches @ossPattern,
+              @ossCodePattern or @expulsionPattern; compare with your resolution type names
               (BehaviorResType). Days are the resolution's school days duration when it is
               filled in, otherwise the instructional days from its start through its end
               date (a missing end date counts the start day only). Days at every school in
@@ -34,6 +35,9 @@ DECLARE @asOf             date = CONVERT(date, GETDATE());
 DECLARE @ossPattern       varchar(50) = '%out%school%';   -- resolution type names for out-of-school suspension
 DECLARE @expulsionPattern varchar(50) = '%expul%';        -- resolution type names for expulsion
 DECLARE @planNameLike     varchar(50) = '%';   -- plan type name filter, e.g. '%IEP%'; '%' = all special ed plan types
+DECLARE @ossCodePattern   varchar(50) = 'OSS%';           -- second pattern for out-of-school suspension resolution type names
+DECLARE @warnDays         int  = 8;      -- removal days at which a student gets the lower flag
+DECLARE @flagDays         int  = 10;     -- removal days at which a student gets the higher flag
 -- ===========================================================================
 
 WITH act AS (   -- one active primary enrollment per student on @asOf
@@ -72,7 +76,7 @@ removal AS (   -- this year's out-of-school suspension and expulsion resolutions
     WHERE c.endYear = @endYear
       AND c.exclude = 0 AND c.summerSchool = 0 AND s.exclude = 0
       AND x.startDate <= @asOf
-      AND (rt.name LIKE @ossPattern OR rt.name LIKE 'OSS%' OR rt.name LIKE @expulsionPattern)
+      AND (rt.name LIKE @ossPattern OR rt.name LIKE @ossCodePattern OR rt.name LIKE @expulsionPattern)
 ),
 perStudent AS (   -- removal totals per student
     SELECT personID, COUNT(*) AS removals, SUM(days) AS removalDays, MAX(startDate) AS lastRemoval
@@ -84,8 +88,8 @@ SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstNa
        ps.removals AS [Removals],
        CAST(ps.removalDays AS decimal(9, 1)) AS [Removal Days],
        ps.lastRemoval AS [Latest Removal],
-       CASE WHEN ps.removalDays >= 10 THEN '10 or more days'
-            WHEN ps.removalDays >= 8  THEN '8 or more days'
+       CASE WHEN ps.removalDays >= @flagDays THEN CAST(@flagDays AS varchar(10)) + ' or more days'
+            WHEN ps.removalDays >= @warnDays THEN CAST(@warnDays AS varchar(10)) + ' or more days'
             ELSE '' END AS [Flag]
 FROM act a
 JOIN iep ie        ON ie.personID  = a.personID
