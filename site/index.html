@@ -75,6 +75,9 @@ h1 { margin: 0; font: 400 clamp(32px, 4vw, 44px)/1.1 var(--font-head); color: va
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { min-height: 40px; padding: 0 14px; border: 2px solid var(--blue); border-radius: 4px; background: #fff; color: var(--blue); font-weight: 700; cursor: pointer; }
 .chip[aria-pressed="true"] { background: var(--blue); color: #fff; }
+.tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.sort { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; }
+.sort select { min-height: 40px; padding: 0 10px; border: 1px solid #8a8a8a; border-radius: 4px; background: #fff; font: inherit; font-weight: 400; }
 
 /* sections + rows */
 .crumbs { display: flex; flex-wrap: wrap; gap: 8px; font-size: 15px; }
@@ -142,7 +145,7 @@ const KW = new Set("select from where join left right inner outer cross apply on
 const FN = new Set("row_number count sum max min convert cast isnull coalesce nullif ltrim rtrim datediff dateadd getdate string_agg patindex len upper lower replace".split(" "));
 
 let DATA = [], CATS = [];
-const st = { view: "home", cat: null, open: null, q: "", catQ: "", kind: "all" };
+const st = { view: "home", cat: null, open: null, q: "", catQ: "", kind: "all", sort: "kind" };
 const KIND_ORDER = ["Validation", "List", "KPI", "Vendor pull"];
 const kindOf = d => (d.type || "").split(" · ")[0].trim() || "Other";
 const kindOk = d => st.kind === "all" || kindOf(d) === st.kind;
@@ -201,8 +204,11 @@ const PLURAL = { "Validation": "Validations", "List": "Lists", "KPI": "KPIs", "V
 const rank = k => KIND_ORDER.indexOf(k) + 1 || 99;
 // Vendor queries group by vendor; everything else groups by kind (Validations, Lists, KPIs).
 const groupOf = d => d.group || PLURAL[kindOf(d)] || kindOf(d);
+const SORTS = { kind: ["Kind", (a, b) => 0], name: ["Name A–Z", (a, b) => a.name.localeCompare(b.name)], num: ["Number", (a, b) => a.num - b.num] };
+const sortHTML = () => `<label class="sort">Sort by <select id="sort">${Object.entries(SORTS).map(([k, [l]]) => `<option value="${k}"${st.sort === k ? " selected" : ""}>${l}</option>`).join("")}</select></label>`;
 function listHTML(items) {
-  const sorted = items.slice().sort((a, b) => (a.group || "").localeCompare(b.group || "") || rank(kindOf(a)) - rank(kindOf(b)));
+  // Groups keep their order; the chosen sort orders queries inside each group.
+  const sorted = items.slice().sort((a, b) => (a.group || "").localeCompare(b.group || "") || rank(kindOf(a)) - rank(kindOf(b)) || SORTS[st.sort][1](a, b) || a.num - b.num);
   const counts = {}; sorted.forEach(d => counts[groupOf(d)] = (counts[groupOf(d)] || 0) + 1);
   const many = Object.keys(counts).length > 1;
   let html = "", group = null;
@@ -226,7 +232,7 @@ function homeView() {
   }).join("");
   let res = "";
   if (st.q) {
-    res = `<p class="muted" role="status" style="margin:0">${results.length} ${results.length === 1 ? "query matches" : "queries match"} “${esc(st.q)}”</p>${chipsHTML(found)}`;
+    res = `<p class="muted" role="status" style="margin:0">${results.length} ${results.length === 1 ? "query matches" : "queries match"} “${esc(st.q)}”</p><div class="tools">${chipsHTML(found)}${sortHTML()}</div>`;
     for (const c of CATS) {
       const inCat = results.filter(d => d.cat === c.key);
       if (inCat.length) res += `<section class="section"><h2>${esc(c.label)} <small>${inCat.length} found</small></h2>${listHTML(inCat)}</section>`;
@@ -257,7 +263,7 @@ function catView() {
     </div>
     <div class="search"><label for="cq">Search in ${esc(c.label)}</label>
       <input id="cq" class="small" type="search" placeholder="Name, table or column" value="${esc(st.catQ)}" autocomplete="off"></div>
-    ${chipsHTML(found)}
+    <div class="tools">${chipsHTML(found)}${sortHTML()}</div>
     <section class="section">
       <h2>Queries <small>${shown.length === all.length ? all.length + " queries" : shown.length + " of " + all.length + " shown"}</small></h2>
       ${shown.length ? listHTML(shown) : `<p class="empty">${all.length ? "Nothing matches. Try fewer words or pick All." : "No queries here yet."}</p>`}
@@ -266,7 +272,7 @@ function catView() {
 
 function render(focusId) {
   app.innerHTML = st.view === "cat" ? catView() : homeView();
-  if (focusId) { const el = document.getElementById(focusId); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }
+  if (focusId) { const el = document.getElementById(focusId); if (el) { el.focus(); if (el.setSelectionRange) el.setSelectionRange(el.value.length, el.value.length); } }
 }
 
 function route() {
@@ -283,6 +289,7 @@ app.addEventListener("input", e => {
   if (e.target.id === "q") { st.q = e.target.value; render("q"); }
   if (e.target.id === "cq") { st.catQ = e.target.value; render("cq"); }
 });
+app.addEventListener("change", e => { if (e.target.id === "sort") { st.sort = e.target.value; render("sort"); } });
 app.addEventListener("click", e => {
   const openBtn = e.target.closest("[data-open]");
   if (openBtn) {
