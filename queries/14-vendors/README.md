@@ -1,6 +1,6 @@
 # Vendors
 
-Files we send to outside vendors, grouped by vendor. Each vendor gets its own folder, for example `queries/04-vendors/iready/students.sql`.
+Files we send to outside vendors, grouped by vendor. Each vendor gets its own folder, for example `queries/14-vendors/iready/students.sql`.
 
 Each vendor query uses the same info header as the rest of the library, plus these fields:
 
