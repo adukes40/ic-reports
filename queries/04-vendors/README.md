@@ -13,6 +13,4 @@ Each vendor query uses the same info header as the rest of the library, plus the
 | `Delivery` | How it gets there: SFTP, vendor portal upload, email |
 | `Owner` | Who at the district sends it or fixes it |
 
-Keep SFTP hostnames, usernames, keys and contract details out of these files. This repo is meant to be shareable.
-
 [← Back to the library](../../README.md)

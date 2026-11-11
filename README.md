@@ -39,12 +39,3 @@ Need something that isn't here? **[Request a query](https://forms.google.com/)**
 ## Finding a query
 
 The site's search box looks inside every query, so you can search for a table name (`RelatedPair`), a column, or a word like "guardian". On GitHub, the search box at the top of the repository does the same.
-
-## Adding or changing a query
-
-1. Copy `templates/query-template.sql` (or `templates/vendor-template.sql` for a vendor pull) into the right folder under `queries/`. Vendor pulls go in `queries/04-vendors/<vendor>/`, with a one-line `README.md` that starts with `# Vendor Name`.
-2. Fill in the header. The site reads it, so keep the `Field:` layout as it is.
-3. Update `Status:` as you test: `Not run yet`, `Needs review`, `Confirmed good` or `Broken`. Only `Confirmed good` queries appear on the site; the others stay in the repo until you confirm them.
-4. Commit and push. The site rebuilds itself in a minute or two.
-
-Keep student data, SFTP hostnames, usernames and passwords out of this repo.
