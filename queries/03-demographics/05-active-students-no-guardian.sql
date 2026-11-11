@@ -1,7 +1,7 @@
 /* ======================================================================================
    #34  Active students with no guardian
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Demographics
    Type:      Validation · Priority 1 · Run BOY, ongoing
    Purpose:   Active students with no current relationship flagged guardian.

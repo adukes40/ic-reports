@@ -1,7 +1,7 @@
 /* ======================================================================================
    #1  Unit count readiness
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Delaware DOE
    Type:      Validation · Priority 1 · Run Sept
    Purpose:   Two unit-count problems in the last 10 instructional days of September:

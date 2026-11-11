@@ -1,7 +1,7 @@
 /* ======================================================================================
    #3  Funding / accountability / CRDC school blanks
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Needs review
    Category:  Delaware DOE
    Type:      Validation · Priority 1 · Run BOY, Sept
    Purpose:   Current primary enrollments missing Funding School, Accountability School or

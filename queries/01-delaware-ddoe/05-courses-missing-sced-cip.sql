@@ -1,7 +1,7 @@
 /* ======================================================================================
    #5  Courses missing SCED or CIP codes
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Broken
    Category:  Delaware DOE
    Type:      Validation · Priority 1 · Run BOY, semester
    Purpose:   Active courses with students rostered today but no SCED code, and CTE courses

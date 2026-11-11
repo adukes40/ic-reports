@@ -1,6 +1,6 @@
 """Build site/queries.json from the header block at the top of every queries/**/*.sql file,
-and copy the published .sql files into site/queries/. Queries marked "Status: Broken" stay
-in the repo but are left off the site.
+and copy the published .sql files into site/queries/. Only queries marked
+"Status: Confirmed good" go on the site; the rest stay in the repo until they're confirmed.
 
 Run by the GitHub Action on every push; run it locally with `python scripts/build_index.py`.
 """
@@ -83,8 +83,8 @@ def parse(path: pathlib.Path) -> dict:
 
 def main() -> int:
     items = [parse(p) for p in sorted(QUERIES.rglob("*.sql"))]
-    hidden = [i["file"] for i in items if i["status"] == "Broken"]
-    items = [i for i in items if i["status"] != "Broken"]
+    hidden = [i["file"] for i in items if i["status"] != "Confirmed good"]
+    items = [i for i in items if i["status"] == "Confirmed good"]
     ids = [i["id"] for i in items]
     dupes = {i for i in ids if ids.count(i) > 1}
     if dupes:
@@ -109,7 +109,7 @@ def main() -> int:
     OUT.write_text(json.dumps({"categories": cats, "queries": items}, ensure_ascii=False), encoding="utf-8")
     print(f"Wrote {len(items)} queries in {len(cats)} categories to {OUT.relative_to(ROOT)}")
     for h in hidden:
-        print(f"Left off the site (Broken): {h}")
+        print(f"Left off the site (not confirmed): {h}")
     return 0
 
 

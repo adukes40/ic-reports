@@ -18,9 +18,9 @@ The header is a SQL comment, so you can paste the whole file as-is.
 
 | Category | What's in it | Queries | Confirmed good |
 |---|---|---|---|
-| [Delaware DOE](queries/01-delaware-ddoe/) | State reporting checks: unit count, DSSF, discipline, SPED, immunizations. | 14 | 0 |
+| [Delaware DOE](queries/01-delaware-ddoe/) | State reporting checks: unit count, DSSF, discipline, SPED, immunizations. | 14 | 1 |
 | [Enrollment & census](queries/02-enrollment-census/) | Enrollment records that are overlapping, missing, mis-dated or mis-coded. | 15 | 0 |
-| [Demographics](queries/03-demographics/) | Student and guardian identity, race/ethnicity, names, contacts and addresses. | 6 | 2 |
+| [Demographics](queries/03-demographics/) | Student and guardian identity, race/ethnicity, names, contacts and addresses. | 6 | 3 |
 | [Vendors](queries/04-vendors/) | Pulls we send to outside vendors, one folder per vendor. | 0 | 0 |
 
 ## Status
@@ -44,7 +44,7 @@ The site's search box looks inside every query, so you can search for a table na
 
 1. Copy `templates/query-template.sql` (or `templates/vendor-template.sql` for a vendor pull) into the right folder under `queries/`. Vendor pulls go in `queries/04-vendors/<vendor>/`, with a one-line `README.md` that starts with `# Vendor Name`.
 2. Fill in the header. The site reads it, so keep the `Field:` layout as it is.
-3. Update `Status:` as you test: `Not run yet`, `Needs review`, `Confirmed good` or `Broken`. A query marked `Broken` stays in the repo but is left off the site until it's fixed.
+3. Update `Status:` as you test: `Not run yet`, `Needs review`, `Confirmed good` or `Broken`. Only `Confirmed good` queries appear on the site; the others stay in the repo until you confirm them.
 4. Commit and push. The site rebuilds itself in a minute or two.
 
 Keep student data, SFTP hostnames, usernames and passwords out of this repo.
