@@ -45,7 +45,7 @@ SELECT inc.schoolID AS [School ID], inc.schoolName AS [School], inc.endYear AS [
        inc.title AS [Title],
        CASE inc.status WHEN 'DF' THEN 'Draft' WHEN 'SB' THEN 'Submitted'
                        WHEN 'IP' THEN 'In progress'
-                       ELSE ISNULL(inc.status, '(no status)') END AS [Incident Status],
+                       ELSE COALESCE(inc.status, '(no status)') END AS [Incident Status],
        COALESCE(loc.name, NULLIF(inc.location, ''), '(no location)') AS [Location],
        ev.eventTypes AS [Event Types], ISNULL(oc.offenders, 0) AS [Offenders],
        inc.daysOpen AS [Days Open],

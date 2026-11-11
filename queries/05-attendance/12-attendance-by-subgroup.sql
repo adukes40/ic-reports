@@ -63,7 +63,7 @@ stu AS (   -- adds each student's subgroup values
                 WHEN '6' THEN 'White'
                 WHEN '7' THEN 'Two or more races'
                 ELSE 'Not reported' END AS race,
-           ISNULL(NULLIF(LTRIM(RTRIM(i.gender)), ''), 'Not reported') AS gender,
+           COALESCE(NULLIF(LTRIM(RTRIM(i.gender)), ''), 'Not reported') AS gender,
            CASE WHEN EXISTS (SELECT 1 FROM SpecialEDState se
                              WHERE se.personID = ed.personID
                                AND (se.startDate IS NULL OR se.startDate <= @endDate)

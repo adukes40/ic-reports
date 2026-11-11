@@ -35,7 +35,7 @@ SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstNa
        COALESCE(bt.name, '(no event type)') AS [Event Type],
        CASE bi.status WHEN 'DF' THEN 'Draft' WHEN 'SB' THEN 'Submitted'
                       WHEN 'IP' THEN 'In progress'
-                      ELSE ISNULL(bi.status, '(no status)') END AS [Incident Status],
+                      ELSE COALESCE(bi.status, '(no status)') END AS [Incident Status],
        DATEDIFF(day, bi.timestamp, @asOf) AS [Days Open]
 FROM BehaviorEvent be
 JOIN BehaviorIncident bi ON bi.incidentID = be.incidentID

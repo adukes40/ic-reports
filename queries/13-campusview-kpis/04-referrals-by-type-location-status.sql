@@ -35,7 +35,7 @@ WITH ref AS (   -- one row per offender per event this year
            COALESCE(loc.name, NULLIF(bi.location, ''), '(no location)') AS location,
            CASE bi.status WHEN 'DF' THEN 'Draft' WHEN 'SB' THEN 'Submitted'
                           WHEN 'IP' THEN 'In progress' WHEN 'CM' THEN 'Complete'
-                          ELSE ISNULL(bi.status, '(no status)') END AS incidentStatus,
+                          ELSE COALESCE(bi.status, '(no status)') END AS incidentStatus,
            CASE WHEN bi.status IS NULL OR bi.status <> @completeStatus THEN 'Open' ELSE 'Complete' END AS openOrComplete
     FROM BehaviorEvent be
     JOIN BehaviorIncident bi ON bi.incidentID = be.incidentID

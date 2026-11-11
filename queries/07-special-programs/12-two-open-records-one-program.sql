@@ -60,7 +60,7 @@ openRec AS (   -- every open record, from program participation and each program
 ),
 dup AS (   -- students with two or more open records for one program
     SELECT personID, programKey, program, COUNT(*) AS openRecords,
-           STRING_AGG(ISNULL(CONVERT(varchar(10), startDate, 23), 'no date'), ', ')
+           STRING_AGG(COALESCE(CONVERT(varchar(10), startDate, 23), 'no date'), ', ')
                WITHIN GROUP (ORDER BY startDate) AS startDates
     FROM openRec
     GROUP BY personID, programKey, program

@@ -68,8 +68,8 @@ refs AS (   -- one row per offender per event this year, with the suspensions gi
 ),
 stu AS (   -- one row per enrolled student per school with subgroup values and discipline counts
     SELECT e.personID, e.schoolID, e.schoolName, e.endYear,
-           ISNULL(NULLIF(LTRIM(RTRIM(e.grade)), ''), '(blank)') AS grade,
-           ISNULL(NULLIF(LTRIM(RTRIM(i.gender)), ''), '(blank)') AS gender,
+           COALESCE(NULLIF(LTRIM(RTRIM(e.grade)), ''), '(blank)') AS grade,
+           COALESCE(NULLIF(LTRIM(RTRIM(i.gender)), ''), '(blank)') AS gender,
            CASE LTRIM(RTRIM(i.raceEthnicityFed))
                 WHEN '1' THEN 'Hispanic/Latino'
                 WHEN '2' THEN 'American Indian or Alaska Native'
@@ -78,8 +78,8 @@ stu AS (   -- one row per enrolled student per school with subgroup values and d
                 WHEN '5' THEN 'Native Hawaiian or Other Pacific Islander'
                 WHEN '6' THEN 'White'
                 WHEN '7' THEN 'Two or more races'
-                ELSE ISNULL(NULLIF(LTRIM(RTRIM(i.raceEthnicityFed)), ''), '(blank)') END AS race,
-           ISNULL(NULLIF(LTRIM(RTRIM(i.hispanicEthnicity)), ''), '(blank)') AS hispanic,
+                ELSE COALESCE(NULLIF(LTRIM(RTRIM(i.raceEthnicityFed)), ''), '(blank)') END AS race,
+           COALESCE(NULLIF(LTRIM(RTRIM(i.hispanicEthnicity)), ''), '(blank)') AS hispanic,
            CASE WHEN EXISTS (SELECT 1 FROM Lep l
                              WHERE l.personID = e.personID AND l.programStatus = 'LEP'
                                AND l.identifiedDate <= @asOf

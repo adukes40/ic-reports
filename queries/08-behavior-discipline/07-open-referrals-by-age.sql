@@ -32,7 +32,7 @@ SELECT c.schoolID AS [School ID], s.name AS [School], c.endYear AS [School Year]
        bi.incidentID AS [Incident ID], bi.title AS [Incident Title],
        CONVERT(date, bi.timestamp) AS [Incident Date],
        CONVERT(date, bi.referralTimestamp) AS [Referral Date],
-       ISNULL(bi.status, '(blank)') AS [Status],
+       COALESCE(bi.status, '(blank)') AS [Status],
        ri.lastName + ', ' + ri.firstName AS [Submitted By],
        ev.eventTypes AS [Event Types],
        (SELECT COUNT(DISTINCT br.personID)
