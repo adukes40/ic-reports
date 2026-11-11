@@ -16,21 +16,12 @@ The header is a SQL comment, so you can paste the whole file as-is.
 
 ## Categories
 
-| Category | What's in it | Queries | Confirmed good |
-|---|---|---|---|
-| [Delaware DOE](queries/01-delaware-ddoe/) | State reporting checks: unit count, DSSF, discipline, SPED, immunizations. | 14 | 1 |
-| [Enrollment & census](queries/02-enrollment-census/) | Enrollment records that are overlapping, missing, mis-dated or mis-coded. | 15 | 0 |
-| [Demographics](queries/03-demographics/) | Student and guardian identity, race/ethnicity, names, contacts and addresses. | 6 | 3 |
-| [Vendors](queries/04-vendors/) | Pulls we send to outside vendors, one folder per vendor. | 0 | 0 |
-
-## Status
-
-| Status | Meaning |
-|---|---|
-| 🟢 Confirmed good | Run against real data and checked |
-| 🟡 Needs review | Runs, but the results need a closer look |
-| ⚪ Not run yet | Written and checked for syntax, not yet run against real data |
-| 🔴 Broken | Known problem; don't use until fixed |
+| Category | What's in it | Queries |
+|---|---|---|
+| [Delaware DOE](queries/01-delaware-ddoe/) | State reporting checks: unit count, DSSF, discipline, SPED, immunizations. | 14 |
+| [Enrollment & census](queries/02-enrollment-census/) | Enrollment records that are overlapping, missing, mis-dated or mis-coded. | 15 |
+| [Demographics](queries/03-demographics/) | Student and guardian identity, race/ethnicity, names, contacts and addresses. | 6 |
+| [Vendors](queries/04-vendors/) | Pulls we send to outside vendors, one folder per vendor. | 0 |
 
 ## Request a query
 
