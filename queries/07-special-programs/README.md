@@ -15,5 +15,7 @@ Open a query, click **Copy content** (top right of the file), and paste it into 
 | 85 | [EL status gaps](07-el-status-gaps.sql) | Not run yet | Active students whose EL record has no program status, current ELs with no first-US-school date, exited ELs with no exit date, and exit dates on records that are not marked exited. |
 | 86 | [EL monitoring years](08-el-monitoring-years.sql) | Not run yet | Active students who exited EL within the last @years years, with the exit date and which year of monitoring they are in. |
 | 87 | [Homeless (McKinney-Vento) gaps](09-homeless-mckinney-vento-gaps.sql) | Not run yet | Active homeless records for active students that are missing the primary nighttime residence or the unaccompanied youth value. |
+| 88 | [Foster care gaps](10-foster-care-gaps.sql) | Not run yet | Active foster care records for active students where the student has no state ID or the record has no case worker name or phone. |
+| 89 | [Program dates outside enrollment](11-program-dates-outside-enrollment.sql) | Not run yet | Program participation records in effect this school year whose start or end date does not fall inside any enrollment the student has in the district. |
 
 [← Back to the library](../../README.md)

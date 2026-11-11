@@ -13,5 +13,7 @@ Open a query, click **Copy content** (top right of the file), and paste it into 
 | 69 | [High school course warning](05-high-school-course-warning.sql) | Not run yet | Active grade 9-12 students with a failing grade in any course in the term. |
 | 70 | [Seniors not on track to graduate](06-seniors-not-on-track-to-graduate.sql) | Not run yet | Active 12th graders whose earned plus in-progress credits fall short of the graduation requirement, in total or in any credit area. |
 | 71 | [Credit-deficient students by grade](07-credit-deficient-students-by-grade.sql) | Not run yet | Active grade 9-12 students whose total earned transcript credits are below the number expected for their grade. |
+| 72 | [Transcripts with no GPA](08-transcripts-with-no-gpa.sql) | Not run yet | This year's transcript rows that should count toward GPA but cannot, and grade 9-12 students who have transcript rows but no cumulative GPA. |
+| 73 | [Duplicate / invalid stored grades](09-duplicate-invalid-stored-grades.sql) | Not run yet | Transcript rows posted more than once for the same student, course, term and year, and transcript rows with a blank or unrecognised mark. |
 
 [← Back to the library](../../README.md)

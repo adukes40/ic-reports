@@ -37,8 +37,8 @@ Validation checks, lists, KPIs and vendor pulls for Delaware school districts.
 | **[Demographics](queries/03-demographics/)** | Student and guardian identity, race and ethnicity, names, contacts and addresses | 12 |
 | **[Scheduling & courses](queries/04-scheduling-courses/)** | Schedule gaps, double bookings, section setup, class sizes and course requests | 11 |
 | **[Attendance](queries/05-attendance/)** | Attendance that was not taken, chronic absence, daily rates and absence patterns | 12 |
-| **[Grades, transcripts & graduation](queries/06-grades-transcripts/)** | Missing posted grades, failures, credit checks, transcripts and graduation tracking | 7 |
-| **[Special programs](queries/07-special-programs/)** | SPED, 504, EL, homeless, foster care and meal eligibility records that are missing, mismatched or due | 9 |
+| **[Grades, transcripts & graduation](queries/06-grades-transcripts/)** | Missing posted grades, failures, credit checks, transcripts and graduation tracking | 9 |
+| **[Special programs](queries/07-special-programs/)** | SPED, 504, EL, homeless, foster care and meal eligibility records that are missing, mismatched or due | 11 |
 | **[Behavior & discipline](queries/08-behavior-discipline/)** | Behavior events, referrals and discipline, by student and by school | 9 |
 | **[Staff](queries/09-staff/)** | Staff credentials, demographics, assignments and rosters | 4 |
 | **[Health & compliance](queries/10-health/)** | Boosters and screenings due, health forms, condition rosters and emergency contacts | 5 |
