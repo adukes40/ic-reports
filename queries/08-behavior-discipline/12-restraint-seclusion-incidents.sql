@@ -15,12 +15,14 @@
               Person, Identity
    Params:    @endYear, @schoolID, @typePattern ('%')  (change them in the PARAMETERS block
               below)
-   Check:     Every behavior response is listed. If your district also records other things
-              as responses, set @typePattern to match the response type names you use for
-              restraint and seclusion (for example '%restrain%'); the Response Type and
-              Type Category columns show what is there. The code in brackets after each
-              staff name is their role on the response as stored. Contains student names:
-              share only with staff who handle restraint reporting.
+   Check:     Every behavior response is listed. If your district also records other
+              things as responses, set @typePattern to match the response type names you
+              use for restraint and seclusion (for example '%restrain%'); the Response
+              Type and Type Category columns show what is there. The code in brackets
+              after each staff name is their role on the response as stored. Contains
+              student names: share only with staff who handle restraint reporting.
+              Delaware requires a written report to the Department of Education within 72
+              hours of a restraint (14 DE Admin. Code 610, 6.1.2).
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.

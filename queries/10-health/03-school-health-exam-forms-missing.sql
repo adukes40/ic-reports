@@ -11,10 +11,13 @@
               HealthScreeningPhysical
    Params:    @endYear, @schoolID, @asOf, @grades, @examSince  (change them in the
               PARAMETERS block below)
-   Check:     Assumes exams are entered as Physical health screenings. Defaults follow
-              Delaware's entry rule (kindergarten and grade 9, exam within two years
-              before the school year began); adjust @grades and @examSince, and make sure
-              the grade codes match how your district writes them (KG, 09).
+   Check:     Assumes exams are entered as Physical health screenings. Delaware requires
+              one exam within the 2 years before a student first enrolls in a Delaware
+              public school and a second within the 2 years before grade 9, with 30
+              calendar days to comply (14 DE Admin. Code 815, 3.1). The defaults cover
+              kindergarten and grade 9; students new to Delaware in other grades need the
+              first exam too, so add their grades to @grades. Make sure the grade codes
+              match how your district writes them (KG, 09).
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.

@@ -14,10 +14,12 @@
    Params:    @endYear, @schoolID, @asOf, @grades, @screeningType, @since  (change them in
               the PARAMETERS block below)
    Check:     @screeningType must be Vision, Hearing, Dental, Scoliosis or Growth; any
-              other value returns nothing. Default grades are Delaware's vision and
-              hearing grades (K, 2, 4, 7, 9); make sure the grade codes match how your
-              district writes them. "This school year" starts July 1 unless you change
-              @since.
+              other value returns nothing. Delaware requires vision and hearing screening
+              in K, 2, 4, 7 and 9 or 10 by January 15 (the default grades), and postural
+              and gait screening in grades 5 to 9 by December 15 (14 DE Admin. Code 815,
+              4.0): for Scoliosis set @grades to '05,06,07,08,09'. Make sure the grade
+              codes match how your district writes them. "This school year" starts July 1
+              unless you change @since.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.

@@ -14,12 +14,13 @@
    Params:    @endYear, @schoolID, @asOf, @requiredCredits (24)  (change them in the
               PARAMETERS block below; the credits per area are in the req list under it)
    Check:     Requirements are not stored in Campus here, so they are typed in: 24 total
-              and the Delaware minimums per area. Change them to your district's. The
-              name patterns in the req list must match your credit type names, or every
-              senior shows as short in that area. Electives are covered by the total. In
-              progress = credit set on this year's scheduled courses that is not on the
-              transcript yet; it carries a credit type only where the course's grading
-              task has one.
+              and the Delaware minimums per area (14 DE Admin. Code 505, 5.1). Change them
+              to your district's. The rule that one math credit is earned in the senior
+              year is not tested. The name patterns in the req list must match your credit
+              type names, or every senior shows as short in that area. Electives are
+              covered by the total. In progress = credit set on this year's scheduled
+              courses that is not on the transcript yet; it carries a credit type only
+              where the course's grading task has one.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.

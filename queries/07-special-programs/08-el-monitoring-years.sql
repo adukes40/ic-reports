@@ -11,10 +11,12 @@
    Tables:    SchoolYear, Enrollment, Calendar, School, Lep, Person, Identity
    Params:    @endYear, @schoolID, @asOf, @years  (change them in the PARAMETERS block
               below)
-   Check:     @years is the length of your monitoring window (4 by default; set it to 2
-              if you monitor two years). The monitoring year is counted in full years
-              from the exit date, not from the monitoring dates stored on the EL record.
-              Any EL record with an exit date counts, whatever its status.
+   Check:     Delaware requires monitoring for at least two school years after
+              reclassification (14 DE Admin. Code 920, 4.2.1); federal reporting follows
+              former English learners for four, which is the @years default. Monitoring
+              years 1 and 2 are the state-required ones. The monitoring year is counted in
+              full years from the exit date, not from the monitoring dates stored on the
+              EL record. Any EL record with an exit date counts, whatever its status.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.

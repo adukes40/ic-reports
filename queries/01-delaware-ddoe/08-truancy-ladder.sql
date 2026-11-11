@@ -11,8 +11,12 @@
    Tables:    Calendar, School, Enrollment, v_AttDayDetail_Exact, Person, Identity
    Params:    @endYear, @schoolID, @truantLine (3), @step1-4 (3 / 10 / 15 / 20)  (change
               them in the PARAMETERS block below)
-   Check:     Full day = unexcusedAbsentDay of 1 or more. 14 Del. C. §2721 says truant after
-              more than 3 days. Set the step days to your district's ladder.
+   Check:     Full day = unexcusedAbsentDay of 1 or more. A student is truant after more
+              than 3 unexcused days in a school year (14 Del. C. §2721) and the principal
+              must refer the case for prosecution after the 20th (§2725). The 10-day step
+              matches the attendance-policy notice in 14 DE Admin. Code 615, 3.3; 15 is a
+              common district step, not a state one. Set the steps to your district's
+              ladder.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.

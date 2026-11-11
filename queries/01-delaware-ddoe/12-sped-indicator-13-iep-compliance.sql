@@ -12,8 +12,10 @@
               v_LearningPlanDetailPostHighSchoolDE, Person, Identity
    Params:    @endYear, @schoolID, @transitionAge (14), @asOf  (change them in the
               PARAMETERS block below)
-   Check:     IEPs are found as specialEd plan types with type or name IEP. DE uses age 14
-              for transition (federal is 16).
+   Check:     IEPs are found as specialEd plan types with type or name IEP. Delaware
+              starts transition with the first IEP in effect when the student turns 14 or
+              enters grade 8, whichever comes first (14 DE Admin. Code 925, 7.2), so both
+              are tested.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
@@ -69,7 +71,7 @@ JOIN Person p ON p.personID = cur.personID
 JOIN [Identity] i ON i.identityID = p.currentIdentityID
 CROSS APPLY (VALUES
     (CASE WHEN cur.iepEnd < @asOf THEN 'Latest IEP is past its end date' END),
-    (CASE WHEN cur.age >= @transitionAge
+    (CASE WHEN (cur.age >= @transitionAge OR TRY_CAST(cur.grade AS int) >= 8)   -- age 14 or grade 8, whichever is first
            AND NOT EXISTS (SELECT 1 FROM v_LearningPlanDetailPostHighSchoolDE ph
                            WHERE ph.planID = cur.planID
                              AND (NULLIF(LTRIM(RTRIM(ph.postSchoolEmploymentGoal)), '') IS NOT NULL

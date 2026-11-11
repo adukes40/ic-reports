@@ -12,11 +12,13 @@
               VaccineShot, VaccineExemption
    Params:    @endYear, @schoolID, @asOf, @grade, @currentGrade, @vaccine  (change them in
               the PARAMETERS block below)
-   Check:     Defaults assume a Tdap booster on entry to grade 9; set the grade and
-              vaccine your requirement uses. @vaccine must match a Code or Abbreviation
-              in the vaccine list exactly, or nothing is returned. Grade codes must match
-              how your district writes them (08, 09). Students with an exemption are
-              listed with the exemption shown.
+   Check:     Delaware requires a Tdap booster and one dose of meningococcal vaccine
+              before grade 9, and a meningococcal booster at age 16 to 18 (14 DE Admin.
+              Code 804, 4.1). The default is Tdap for grade 9: run it again with the
+              meningococcal vaccine. @vaccine must match a Code or Abbreviation in the
+              vaccine list exactly, or nothing is returned. Grade codes must match how
+              your district writes them (08, 09). Students with an exemption are listed
+              with the exemption shown.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.

@@ -15,12 +15,13 @@
               @planNameLike  (change them in the PARAMETERS block below)
    Check:     Removals are resolutions whose type name matches @ossPattern, starts with
               OSS, or matches @expulsionPattern; compare with your resolution type names
-              (BehaviorResType). Days are the resolution's school days duration when it
-              is filled in, otherwise the instructional days from its start through its
-              end date (a missing end date counts the start day only). Days at every
-              school in the district this year are added together. IEPs are locked plans
-              in the special ed module; set @planNameLike if that module holds other
-              plan types.
+              (BehaviorResType). Days are the resolution's school days duration when it is
+              filled in, otherwise the instructional days from its start through its end
+              date (a missing end date counts the start day only). Days at every school in
+              the district this year are added together. IEPs are locked plans in the
+              special ed module; set @planNameLike if that module holds other plan types.
+              After 10 school days of removal in one school year, services must be
+              provided for any further removal (14 DE Admin. Code 926, 30.2.1).
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
