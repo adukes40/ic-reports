@@ -58,7 +58,7 @@ SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstNa
        CONVERT(date, e.endDate)   AS [End Date],   e.endStatus AS [End Status],
        prior.priorSchool AS [Prior School],                        -- where an entering student came from (in-district)
        nxt.name                    AS [Next School], -- where a leaving student is going (if set)
-       e.residentDistrict AS [Resident District], e.servingDistrict AS [Serving District]
+       e.residentDistrict AS [Resident District]
 FROM Enrollment e
 JOIN winRange w ON w.calendarID = e.calendarID AND w.structureID = e.structureID
 JOIN cal ON cal.calendarID = e.calendarID

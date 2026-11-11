@@ -1,5 +1,5 @@
 /* ======================================================================================
-   #6  End date / end status mismatch
+   #20  End date / end status mismatch
    --------------------------------------------------------------------------------------
    Status:    Not run yet
    Category:  Enrollment & census

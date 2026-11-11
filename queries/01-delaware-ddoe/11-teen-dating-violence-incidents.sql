@@ -8,7 +8,7 @@
               with role counts only, for the Reg 601 TDV report.
    Output:    One row per event: school, date, codes, type, location, offender / victim /
               participant counts, police notified
-   Tables:    Calendar, School, BehaviorEvent, BehaviorType, BehaviorRole
+   Tables:    Calendar, School, BehaviorEvent, BehaviorIncident, BehaviorType, BehaviorRole
    Params:    @endYear, @schoolID, @codes (edit the list)  (change them in the PARAMETERS
               block below)
    Check:     The code list holds placeholders (TDV, SXA, SXO). Put in your real event codes
@@ -27,9 +27,9 @@ INSERT INTO @codes VALUES ('TDV'), ('SXA'), ('SXO');   -- placeholders; replace 
 -- ===========================================================================
 
 SELECT c.schoolID AS [School ID], s.name AS [School], c.endYear AS [School Year],
-       be.eventID AS [Event ID], CONVERT(date, be.timestamp) AS [Event Date],
+       be.eventID AS [Event ID], CONVERT(date, bi.timestamp) AS [Event Date],
        bt.code AS [Event Code], bt.stateEventCode AS [State Event Code], bt.name AS [Event Type],
-       be.location AS [Location],
+       bi.location AS [Location],
        SUM(CASE WHEN br.role = 'Offender'    THEN 1 ELSE 0 END) AS [Offenders],
        SUM(CASE WHEN br.role = 'Victim'      THEN 1 ELSE 0 END) AS [Victims],
        SUM(CASE WHEN br.role = 'Participant' THEN 1 ELSE 0 END) AS [Participants],
@@ -37,6 +37,7 @@ SELECT c.schoolID AS [School ID], s.name AS [School], c.endYear AS [School Year]
                 THEN 1 ELSE 0 END) AS [Other Roles],
        MAX(CAST(be.policeNotified AS int)) AS [Police Notified]
 FROM BehaviorEvent be
+JOIN BehaviorIncident bi ON bi.incidentID = be.incidentID   -- date and location are on the incident
 JOIN BehaviorType bt ON bt.typeID = be.typeID
 JOIN Calendar c ON c.calendarID = be.calendarID
 JOIN School   s ON s.schoolID   = c.schoolID
@@ -47,6 +48,6 @@ WHERE c.endYear = @endYear
   AND (bt.code IN (SELECT code FROM @codes)
        OR bt.stateEventCode IN (SELECT code FROM @codes)
        OR bt.name LIKE '%dating%' OR bt.name LIKE '%sexual assault%')
-GROUP BY c.schoolID, s.name, c.endYear, be.eventID, be.timestamp,
-         bt.code, bt.stateEventCode, bt.name, be.location
-ORDER BY s.name, be.timestamp;
+GROUP BY c.schoolID, s.name, c.endYear, be.eventID, bi.timestamp,
+         bt.code, bt.stateEventCode, bt.name, bi.location
+ORDER BY s.name, bi.timestamp;

@@ -1,7 +1,7 @@
 /* ======================================================================================
    #5  Courses missing SCED or CIP codes
    --------------------------------------------------------------------------------------
-   Status:    Broken
+   Status:    Not run yet
    Category:  Delaware DOE
    Type:      Validation · Priority 1 · Run BOY, semester
    Purpose:   Active courses with students rostered today but no SCED code, and CTE courses
@@ -10,8 +10,9 @@
               current codes, issue
    Tables:    Calendar, School, Course, Section, Trial, Roster
    Params:    @endYear, @schoolID, @asOf  (change them in the PARAMETERS block below)
-   Check:     CTE is detected from Course.vocationalCode. A blank SCED passes if
-              Course.stateCode is filled; adjust if DE wants scedCourseId specifically.
+   Check:     A course counts as CTE when its SCED subject area is 10 to 21 (the career
+              and technical areas); change the list in the query if your CTE courses are
+              coded differently. A blank SCED passes if Course.stateCode is filled.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
@@ -25,7 +26,7 @@ DECLARE @asOf     date = CONVERT(date, GETDATE());
 
 WITH crs AS (
     SELECT co.courseID, co.number AS courseNumber, co.name AS courseName,
-           co.stateCode, co.scedSubjectArea, co.scedCourseId, co.cipCode, co.vocationalCode,
+           co.stateCode, co.scedSubjectArea, co.scedCourseId, co.cipCode,
            c.schoolID, s.name AS schoolName, c.endYear,
            (SELECT COUNT(DISTINCT r.personID)
               FROM Section se
@@ -45,14 +46,14 @@ WITH crs AS (
 )
 SELECT crs.schoolID AS [School ID], crs.schoolName AS [School], crs.endYear AS [School Year],
        crs.courseNumber AS [Course Number], crs.courseName AS [Course Name], crs.studentCount AS [Student Count],
-       crs.stateCode AS [State Code], crs.scedSubjectArea AS [SCED Subject Area], crs.scedCourseId AS [SCED Course ID], crs.cipCode AS [CIP Code], crs.vocationalCode AS [Vocational Code],
+       crs.stateCode AS [State Code], crs.scedSubjectArea AS [SCED Subject Area], crs.scedCourseId AS [SCED Course ID], crs.cipCode AS [CIP Code],
        x.issue AS [Issue]
 FROM crs
 CROSS APPLY (VALUES
     (CASE WHEN NULLIF(LTRIM(RTRIM(crs.scedCourseId)), '') IS NULL
            AND NULLIF(LTRIM(RTRIM(crs.stateCode)), '') IS NULL
           THEN 'No SCED course code' END),
-    (CASE WHEN NULLIF(LTRIM(RTRIM(crs.vocationalCode)), '') IS NOT NULL
+    (CASE WHEN crs.scedSubjectArea IN ('10','11','12','13','14','15','16','17','18','19','20','21')   -- CTE subject areas
            AND NULLIF(LTRIM(RTRIM(crs.cipCode)), '') IS NULL
           THEN 'CTE course with no CIP code' END)
 ) x(issue)

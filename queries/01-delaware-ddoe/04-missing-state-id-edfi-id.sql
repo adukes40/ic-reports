@@ -6,7 +6,7 @@
    Type:      Validation · Priority 1 · Run Ongoing
    Purpose:   Active students with no state ID or Ed-Fi ID, and active staff with no staff
               state ID.
-   Output:    One row per problem: person type, local number, name, school, grade or title,
+   Output:    One row per problem: person type, local number, name, school, grade or role,
               issue
    Tables:    Calendar, School, Enrollment, EmploymentAssignment, Person, Identity
    Params:    @endYear, @schoolID, @asOf (today)  (change them in the PARAMETERS block
@@ -36,7 +36,8 @@ WITH stu AS (   -- one row per active student (their primary school today)
       AND (@schoolID IS NULL OR c.schoolID = @schoolID)
 ),
 staff AS (      -- one row per active staff person (first school by assignment start)
-    SELECT ea.personID, ea.schoolID, s.name AS schoolName, ea.title,
+    SELECT ea.personID, ea.schoolID, s.name AS schoolName,
+           CASE WHEN ea.teacher = 1 THEN 'Teacher' WHEN ea.counselor = 1 THEN 'Counselor' ELSE 'Staff' END AS staffRole,
            ROW_NUMBER() OVER (PARTITION BY ea.personID ORDER BY ea.startDate) AS rn
     FROM EmploymentAssignment ea
     JOIN School s ON s.schoolID = ea.schoolID
@@ -46,7 +47,7 @@ staff AS (      -- one row per active staff person (first school by assignment s
       AND (@schoolID IS NULL OR ea.schoolID = @schoolID)
 )
 SELECT 'Student' AS [Person Type], p.studentNumber AS [Local Number], i.lastName AS [Last Name], i.firstName AS [First Name],
-       st.schoolID AS [School ID], st.schoolName AS [School], st.endYear AS [School Year], st.grade AS [Grade], NULL AS [Staff Title],
+       st.schoolID AS [School ID], st.schoolName AS [School], st.endYear AS [School Year], st.grade AS [Grade], NULL AS [Staff Role],
        x.issue AS [Issue]
 FROM stu st
 JOIN Person p ON p.personID = st.personID
@@ -61,7 +62,7 @@ WHERE st.rn = 1 AND x.issue IS NOT NULL
 UNION ALL
 
 SELECT 'Staff', p.staffNumber, i.lastName, i.firstName,
-       sf.schoolID, sf.schoolName, @endYear, NULL, sf.title,
+       sf.schoolID, sf.schoolName, @endYear, NULL, sf.staffRole,
        'Staff member has no staff state ID'
 FROM staff sf
 JOIN Person p ON p.personID = sf.personID
