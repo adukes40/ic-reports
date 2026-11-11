@@ -11,5 +11,7 @@ Open a query, click **Copy content** (top right of the file), and paste it into 
 | 97 | [Bullying with no victim](05-bullying-with-no-victim.sql) | Not run yet | Bullying or harassment events with nobody in the victim role. CRDC counts the students who were bullied or harassed, so each of these needs a victim. |
 | 99 | [Open referrals by age](07-open-referrals-by-age.sql) | Not run yet | This year's behavior incidents that are not marked complete, with the number of days since the incident and an age bucket, oldest first. |
 | 100 | [Behavior incidents per student, by type](01-behavior-incidents-per-student.sql) | Confirmed good | Per student, how many behavior events they were in this year as offender or participant, with a breakdown by event type. Filter Total Events to 2 or more for repeat referrals. |
+| 101 | [Discipline by subgroup](09-discipline-by-subgroup.sql) | Not run yet | Per school, referrals and suspensions this year by race/ethnicity, Hispanic ethnicity, gender, grade, English learner, special education and incident type, with the students enrolled in each group as the denominator. |
+| 102 | [Exclusionary discipline days](10-exclusionary-discipline-days.sql) | Not run yet | Per school and subgroup, the out-of-school suspension and expulsion days assigned this year and the number of students affected. |
 
 [← Back to the library](../../README.md)
