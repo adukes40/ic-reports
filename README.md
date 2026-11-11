@@ -6,7 +6,7 @@
 Validation checks, lists, KPIs and vendor pulls for Delaware school districts.
 
 [![Browse the library](https://img.shields.io/badge/Browse%20the%20library-000098?style=for-the-badge&logo=googlechrome&logoColor=white)](https://adukes40.github.io/ic-reports/)
-[![Request a query](https://img.shields.io/badge/Request%20a%20query-fcbe14?style=for-the-badge&logoColor=000098)](https://forms.google.com/)
+[![Request a query](https://img.shields.io/badge/Request%20a%20query-fcbe14?style=for-the-badge&logoColor=000098)](https://github.com/adukes40/ic-reports/issues/new?template=query-request.yml)
 
 ![Infinite Campus](https://img.shields.io/badge/Infinite%20Campus-SQL%20Server-000098?style=flat-square)
 ![Delaware](https://img.shields.io/badge/Delaware-DDOE%20reporting-000098?style=flat-square)
@@ -43,4 +43,4 @@ The library's search box looks inside every query, so you can search for a table
 
 ## Request a query
 
-Need something that isn't here? **[Request a query](https://forms.google.com/)** and describe what you want to see.
+Need something that isn't here? **[Request a query](https://github.com/adukes40/ic-reports/issues/new?template=query-request.yml)** on GitHub and describe what you want to see. You'll need a free GitHub account to submit it.

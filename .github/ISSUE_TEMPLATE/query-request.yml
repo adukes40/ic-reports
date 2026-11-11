@@ -1,0 +1,37 @@
+name: Request a query
+description: Ask for a new Infinite Campus query, or a change to an existing one.
+title: "Request: "
+labels: ["request"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What do you need to see?
+      description: Describe the list or check in plain words. Example — "Students who enrolled in the last 10 school days, with their prior school and grade."
+    validations:
+      required: true
+  - type: input
+    id: who
+    attributes:
+      label: Who will use it?
+      description: School or office and role, such as "Registrar, high school."
+  - type: input
+    id: scope
+    attributes:
+      label: Which schools or grades?
+      placeholder: All schools
+  - type: dropdown
+    id: often
+    attributes:
+      label: How often will it be run?
+      options:
+        - One time
+        - Weekly
+        - Monthly
+        - Start of year
+        - End of year
+  - type: textarea
+    id: columns
+    attributes:
+      label: Columns you want in the results (optional)
+      description: For example — student number, name, school, grade, entry date.
