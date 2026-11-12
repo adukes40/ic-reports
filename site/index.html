@@ -77,13 +77,6 @@ h1 { margin: 0; font: 400 clamp(32px, 4vw, 44px)/1.1 var(--font-head); color: va
 .chip[aria-pressed="true"] { background: var(--blue); color: #fff; }
 .tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .sort { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; }
-.item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
-.item > .detail { grid-column: 1 / -1; }
-.rate { display: flex; align-items: center; gap: 4px; padding-right: 8px; font-size: 14px; color: var(--muted); white-space: nowrap; }
-.vote { min-height: 40px; min-width: 52px; padding: 0 8px; border: 1px solid var(--line-2); border-radius: 4px; background: #fff; cursor: pointer; font-variant-numeric: tabular-nums; }
-.vote[aria-pressed="true"] { border-color: var(--blue); background: var(--blue); color: #fff; }
-.dl { padding-left: 6px; font-variant-numeric: tabular-nums; }
-@media (max-width: 640px) { .item { grid-template-columns: 1fr; } .rate { padding: 0 12px 12px; } }
 .sort select { min-height: 40px; padding: 0 10px; border: 1px solid #8a8a8a; border-radius: 4px; background: #fff; font: inherit; font-weight: 400; }
 
 /* sections + rows */
@@ -147,19 +140,13 @@ footer .wrap { padding-block: 20px 32px; font-size: 14px; color: var(--muted); d
 
 <script>
 // Where the "Request a query" button goes.
-// Counter service for thumbs and downloads (see counter/README.md). Empty = ratings hidden.
-const COUNTER_URL = "";
 const REQUEST_URL = "https://github.com/adukes40/ic-reports/issues/new?template=query-request.yml";
 
 const KW = new Set("select from where join left right inner outer cross apply on and or not in is null as with case when then else end order by group having distinct top declare int date varchar union all exists over partition desc asc between like set into values collate".split(" "));
 const FN = new Set("row_number count sum max min convert cast isnull coalesce nullif ltrim rtrim datediff dateadd getdate string_agg patindex len upper lower replace".split(" "));
 
 let DATA = [], CATS = [];
-const st = { view: "home", cat: null, open: null, q: "", catQ: "", kind: "all", sort: "name" };
-let COUNTS = {};   // { id: { up, down, dl } } from the counter service
-const cnt = (id, k) => (COUNTS[id] && COUNTS[id][k]) || 0;
-const score = d => cnt(d.id, "up") - cnt(d.id, "down");
-const myVote = id => { try { return localStorage.getItem("vote:" + id) || ""; } catch { return ""; } };
+const st = { view: "home", cat: null, open: null, q: "", catQ: "", kind: "all" };
 const KIND_ORDER = ["Validation", "List", "KPI", "Vendor pull"];
 const kindOf = d => (d.type || "").split(" · ")[0].trim() || "Other";
 const kindOk = d => st.kind === "all" || kindOf(d) === st.kind;
@@ -188,19 +175,13 @@ function hl(sql) {
   return out + esc(sql.slice(last));
 }
 
-function rateHTML(d) {
-  const v = myVote(d.id), b = (k, icon, label) =>
-    `<button class="vote" type="button" data-vote="${k}" data-id="${d.id}" aria-pressed="${v === k}" aria-label="${label}, ${cnt(d.id, k)} so far">${icon} ${cnt(d.id, k)}</button>`;
-  return `<div class="rate">${b("up", "👍", "Thumbs up")}${b("down", "👎", "Thumbs down")}<span class="dl" title="Downloads and copies">⭳ ${cnt(d.id, "dl")}</span></div>`;
-}
-
 function itemHTML(d) {
   const open = st.open === d.id;
   let html = `<div class="item${open ? " open" : ""}" id="q-${d.id}">
     <button class="row" type="button" data-open="${d.id}" aria-expanded="${open}">
       <span><span class="nm">${esc(d.name)}</span><span class="pp">${esc(d.purpose)}</span></span>
       <span class="chev" aria-hidden="true">${open ? "Hide" : "Show"}</span>
-    </button>${COUNTER_URL ? rateHTML(d) : ""}`;
+    </button>`;
   if (open) {
     const when = (d.type.match(/Run (.+)$/) || [])[1];
     const facts = [["Kind", kindOf(d)], ["When to run", when], ["Output", d.output], ["Parameters", d.params && `<code>${esc(d.params)}</code>`, true], ["Tables", d.tables],
@@ -211,7 +192,7 @@ function itemHTML(d) {
       ${d.check ? `<div class="check"><strong>Check before running: </strong>${esc(d.check)}</div>` : ""}
       <div class="code">
         <div class="code-bar"><span class="copied" role="status"></span>
-          <a class="btn btn-line btn-sm" href="${esc(d.file)}" download data-dl="${d.id}">Download .sql</a>
+          <a class="btn btn-line btn-sm" href="${esc(d.file)}" download>Download .sql</a>
           <button class="btn btn-blue btn-sm" type="button" data-copy="${d.id}">Copy SQL</button></div>
         <div class="code-body">${lines.map((l, i) => `<div class="ln"><b>${i + 1}</b><span class="t">${l || " "}</span></div>`).join("")}</div>
       </div>
@@ -224,12 +205,9 @@ const PLURAL = { "Validation": "Validations", "List": "Lists", "KPI": "KPIs", "V
 const rank = k => KIND_ORDER.indexOf(k) + 1 || 99;
 // Vendor queries group by vendor; everything else groups by kind (Validations, Lists, KPIs).
 const groupOf = d => d.group || PLURAL[kindOf(d)] || kindOf(d);
-const byName = (a, b) => a.name.localeCompare(b.name);
-const SORTS = { name: ["Name A–Z", byName], rating: ["Rating", (a, b) => score(b) - score(a) || byName(a, b)] };
-const sortHTML = () => `<label class="sort">Sort by <select id="sort">${Object.entries(SORTS).filter(([k]) => k !== "rating" || COUNTER_URL).map(([k, [l]]) => `<option value="${k}"${st.sort === k ? " selected" : ""}>${l}</option>`).join("")}</select></label>`;
 function listHTML(items) {
-  // Groups keep their order; the chosen sort orders queries inside each group.
-  const sorted = items.slice().sort((a, b) => (a.group || "").localeCompare(b.group || "") || rank(kindOf(a)) - rank(kindOf(b)) || SORTS[st.sort][1](a, b));
+  // Groups keep their order; queries inside each group are A–Z.
+  const sorted = items.slice().sort((a, b) => (a.group || "").localeCompare(b.group || "") || rank(kindOf(a)) - rank(kindOf(b)) || a.name.localeCompare(b.name));
   const counts = {}; sorted.forEach(d => counts[groupOf(d)] = (counts[groupOf(d)] || 0) + 1);
   const many = Object.keys(counts).length > 1;
   let html = "", group = null;
@@ -253,7 +231,7 @@ function homeView() {
   }).join("");
   let res = "";
   if (st.q) {
-    res = `<p class="muted" role="status" style="margin:0">${results.length} ${results.length === 1 ? "query matches" : "queries match"} “${esc(st.q)}”</p><div class="tools">${chipsHTML(found)}${sortHTML()}</div>`;
+    res = `<p class="muted" role="status" style="margin:0">${results.length} ${results.length === 1 ? "query matches" : "queries match"} “${esc(st.q)}”</p><div class="tools">${chipsHTML(found)}</div>`;
     for (const c of CATS) {
       const inCat = results.filter(d => d.cat === c.key);
       if (inCat.length) res += `<section class="section"><h2>${esc(c.label)} <small>${inCat.length} found</small></h2>${listHTML(inCat)}</section>`;
@@ -284,7 +262,7 @@ function catView() {
     </div>
     <div class="search"><label for="cq">Search in ${esc(c.label)}</label>
       <input id="cq" class="small" type="search" placeholder="Name, table or column" value="${esc(st.catQ)}" autocomplete="off"></div>
-    <div class="tools">${chipsHTML(found)}${sortHTML()}</div>
+    <div class="tools">${chipsHTML(found)}</div>
     <section class="section">
       <h2>Queries <small>${shown.length === all.length ? all.length + " queries" : shown.length + " of " + all.length + " shown"}</small></h2>
       ${shown.length ? listHTML(shown) : `<p class="empty">${all.length ? "Nothing matches. Try fewer words or pick All." : "No queries here yet."}</p>`}
@@ -310,7 +288,6 @@ app.addEventListener("input", e => {
   if (e.target.id === "q") { st.q = e.target.value; render("q"); }
   if (e.target.id === "cq") { st.catQ = e.target.value; render("cq"); }
 });
-app.addEventListener("change", e => { if (e.target.id === "sort") { st.sort = e.target.value; render("sort"); } });
 app.addEventListener("click", e => {
   const openBtn = e.target.closest("[data-open]");
   if (openBtn) {
@@ -321,19 +298,8 @@ app.addEventListener("click", e => {
   }
   const kind = e.target.closest("[data-kind]");
   if (kind) { st.kind = kind.dataset.kind; render(); return; }
-  const vote = e.target.closest("[data-vote]");
-  if (vote) {
-    const id = vote.dataset.id, k = vote.dataset.vote, was = myVote(id);
-    // One vote per browser: clicking your vote again takes it back; switching moves it.
-    if (was) { hit(id, "-" + was); }
-    if (was !== k) { hit(id, k); }
-    try { localStorage.setItem("vote:" + id, was === k ? "" : k); } catch {}
-    render(); return;
-  }
-  if (e.target.closest("[data-dl]")) hit(e.target.closest("[data-dl]").dataset.dl, "dl");
   const copy = e.target.closest("[data-copy]");
   if (copy) {
-    hit(copy.dataset.copy, "dl");
     const d = DATA.find(x => x.id === copy.dataset.copy), msg = copy.parentElement.querySelector(".copied");
     navigator.clipboard.writeText(d.sql).then(() => { msg.textContent = "Copied"; setTimeout(() => msg.textContent = "", 2000); })
       .catch(() => { const r = document.createRange(); r.selectNodeContents(copy.closest(".code").querySelector(".code-body")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); msg.textContent = "Selected. Press Ctrl+C"; });
@@ -344,15 +310,6 @@ window.addEventListener("hashchange", route);
 const req = document.getElementById("reqBtn");
 if (REQUEST_URL) req.href = REQUEST_URL;
 else { req.removeAttribute("target"); req.addEventListener("click", e => { e.preventDefault(); alert("The request form isn't set up yet. Add your Google Form link to REQUEST_URL in site/index.html."); }); }
-
-// Count locally right away, then tell the counter service; the page never waits on it.
-function hit(id, k) {
-  if (!COUNTER_URL) return;
-  const c = COUNTS[id] = COUNTS[id] || {}, key = k.replace("-", "");
-  c[key] = Math.max(0, (c[key] || 0) + (k[0] === "-" ? -1 : 1));
-  fetch(`${COUNTER_URL}/hit?id=${encodeURIComponent(id)}&k=${encodeURIComponent(k)}`, { method: "POST" }).catch(() => {});
-}
-if (COUNTER_URL) fetch(COUNTER_URL + "/counts").then(r => r.json()).then(j => { COUNTS = j; if (DATA.length) render(); }).catch(() => {});
 
 fetch("queries.json", { cache: "no-cache" })
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
