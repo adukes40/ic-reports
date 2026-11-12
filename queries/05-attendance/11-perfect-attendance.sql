@@ -25,7 +25,7 @@
 -- ===== PARAMETERS ==========================================================
 DECLARE @endYear   int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
 DECLARE @schoolID  int  = NULL;   -- NULL = all schools
-DECLARE @startDate date = DATEFROMPARTS(@endYear - 1, 7, 1);   -- first day of the range
+DECLARE @startDate date = (SELECT MIN(startDate) FROM Calendar WHERE endYear = @endYear AND exclude = 0 AND summerSchool = 0);   -- first day of the range (earliest calendar start)
 DECLARE @endDate   date = CONVERT(date, GETDATE());            -- last day of the range
 -- ===========================================================================
 

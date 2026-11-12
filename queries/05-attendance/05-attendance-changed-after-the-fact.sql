@@ -10,8 +10,8 @@
               days after, changed by, action, old code, new code
    Tables:    SchoolYear, AuditAttendance, AttendanceExcuse, Calendar, School, Period,
               UserAccount, Person, Identity
-   Params:    @endYear, @schoolID, @asOf, @days, @changedSince  (change them in the
-              PARAMETERS block below)
+   Params:    @endYear, @schoolID, @asOf, @days, @changedSince, @yearStart  (change them
+              in the PARAMETERS block below)
    Check:     Assumes each AuditAttendance row holds the values saved by that action, so
               Old Code is the previous audit row for the same attendance record (blank
               when there is none). Action is shown as stored (normally I = added,
@@ -28,6 +28,7 @@ DECLARE @schoolID     int  = NULL;   -- NULL = all schools
 DECLARE @asOf         date = CONVERT(date, GETDATE());
 DECLARE @days         int  = 3;      -- list changes made more than this many days after the attendance date
 DECLARE @changedSince date = DATEADD(day, -7, @asOf);   -- only changes made on or after this date
+DECLARE @yearStart    date = (SELECT MIN(startDate) FROM Calendar WHERE endYear = @endYear AND exclude = 0 AND summerSchool = 0);   -- first day of the school year, from the calendars
 -- ===========================================================================
 
 WITH aud AS (   -- this year's attendance audit rows, each with the code saved just before it
@@ -43,7 +44,7 @@ WITH aud AS (   -- this year's attendance audit rows, each with the code saved j
     WHERE c.endYear = @endYear
       AND c.exclude = 0 AND c.summerSchool = 0 AND s.exclude = 0
       AND (@schoolID IS NULL OR c.schoolID = @schoolID)
-      AND au.date >= DATEFROMPARTS(@endYear - 1, 7, 1)
+      AND au.date >= @yearStart
 )
 SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstName AS [First Name],
        a.schoolID AS [School ID], a.schoolName AS [School], a.endYear AS [School Year],

@@ -9,8 +9,8 @@
    Output:    One row per student per date: school, grade, date, issue
    Tables:    SchoolYear, Calendar, School, BehaviorResolution, BehaviorResType, Day,
               Attendance, AttendanceExcuse, Enrollment, Person, Identity
-   Params:    @endYear, @schoolID, @asOf, @ossNamePattern, @ossCodePattern  (change them in
-              the PARAMETERS block below)
+   Params:    @endYear, @schoolID, @asOf, @ossNamePattern, @ossCodePattern, @yearStart
+              (change them in the PARAMETERS block below)
    Check:     OSS resolutions are found by resolution type name LIKE @ossNamePattern or
               code LIKE @ossCodePattern; OSS attendance by attendance code description or
               code with the same two patterns. Confirm both against your resolution types
@@ -28,6 +28,7 @@ DECLARE @schoolID       int  = NULL;   -- NULL = all schools
 DECLARE @asOf           date = CONVERT(date, GETDATE());   -- check days through this date
 DECLARE @ossNamePattern varchar(50) = '%out%school%';   -- matches resolution type name and attendance code description
 DECLARE @ossCodePattern varchar(10) = 'OSS%';           -- matches resolution type code and attendance code
+DECLARE @yearStart      date = (SELECT MIN(startDate) FROM Calendar WHERE endYear = @endYear AND exclude = 0 AND summerSchool = 0);   -- first day of the school year, from the calendars
 -- ===========================================================================
 
 WITH cal AS (   -- this year's calendars
@@ -61,7 +62,7 @@ ossAtt AS (   -- each student day with an OSS-coded attendance row
     JOIN cal ON cal.calendarID = x.calendarID
     JOIN Attendance a ON a.excuseID = x.excuseID AND a.calendarID = x.calendarID
     WHERE (x.description LIKE @ossNamePattern OR x.code LIKE @ossCodePattern)
-      AND a.date >= DATEFROMPARTS(@endYear - 1, 7, 1) AND a.date <= @asOf
+      AND a.date >= @yearStart AND a.date <= @asOf
 ),
 problems AS (   -- suspension days with no OSS attendance, then OSS attendance with no suspension
     SELECT sd.personID, sd.calendarID, sd.date,

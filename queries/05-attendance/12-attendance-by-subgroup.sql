@@ -29,7 +29,7 @@
 -- ===== PARAMETERS ==========================================================
 DECLARE @endYear   int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
 DECLARE @schoolID  int  = NULL;   -- NULL = all schools
-DECLARE @startDate date = DATEFROMPARTS(@endYear - 1, 7, 1);   -- first day to count
+DECLARE @startDate date = (SELECT MIN(startDate) FROM Calendar WHERE endYear = @endYear AND exclude = 0 AND summerSchool = 0);   -- first day to count (earliest calendar start)
 DECLARE @endDate   date = CONVERT(date, GETDATE());            -- last day to count
 DECLARE @elStatus  varchar(15) = 'LEP';                        -- program status code that means the student is an English learner
 -- ===========================================================================

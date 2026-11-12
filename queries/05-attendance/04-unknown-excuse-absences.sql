@@ -10,7 +10,8 @@
               code, days old, issue
    Tables:    SchoolYear, Attendance, AttendanceExcuse, Calendar, School, Period,
               Enrollment, Person, Identity
-   Params:    @endYear, @schoolID, @asOf, @days  (change them in the PARAMETERS block below)
+   Params:    @endYear, @schoolID, @asOf, @days, @yearStart  (change them in the
+              PARAMETERS block below)
    Check:     Absent = status A and Unknown = excuse K (IC's standard values), read from the
               attendance code when the row has one, else from the row itself. An absence
               with no excuse value at all is also treated as Unknown.
@@ -24,6 +25,7 @@ DECLARE @endYear  int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1)
 DECLARE @schoolID int  = NULL;   -- NULL = all schools
 DECLARE @asOf     date = CONVERT(date, GETDATE());
 DECLARE @days     int  = 5;      -- list absences older than this many days
+DECLARE @yearStart date = (SELECT MIN(startDate) FROM Calendar WHERE endYear = @endYear AND exclude = 0 AND summerSchool = 0);   -- first day of the school year, from the calendars
 -- ===========================================================================
 
 SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstName AS [First Name],
@@ -47,7 +49,7 @@ OUTER APPLY (SELECT TOP 1 e.grade FROM Enrollment e
 WHERE c.endYear = @endYear
   AND c.exclude = 0 AND c.summerSchool = 0 AND s.exclude = 0
   AND (@schoolID IS NULL OR c.schoolID = @schoolID)
-  AND a.date >= DATEFROMPARTS(@endYear - 1, 7, 1)
+  AND a.date >= @yearStart
   AND a.date <  DATEADD(day, -@days, @asOf)
   AND COALESCE(x.status, a.status) = 'A'
   AND ISNULL(COALESCE(x.excuse, a.excuse), 'K') = 'K'

@@ -21,8 +21,8 @@
 -- ===== PARAMETERS ==========================================================
 DECLARE @endYear   int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
 DECLARE @schoolID  int  = NULL;   -- NULL = all schools
-DECLARE @startDate date = DATEFROMPARTS(@endYear - 1, 7, 1);   -- first attendance date to scan
-DECLARE @endDate   date = DATEFROMPARTS(@endYear, 6, 30);      -- last attendance date to scan
+DECLARE @startDate date = (SELECT MIN(startDate) FROM Calendar WHERE endYear = @endYear AND exclude = 0 AND summerSchool = 0);   -- first attendance date to scan (earliest calendar start)
+DECLARE @endDate   date = (SELECT MAX(endDate) FROM Calendar WHERE endYear = @endYear AND exclude = 0 AND summerSchool = 0);     -- last attendance date to scan (latest calendar end)
 -- ===========================================================================
 
 WITH bad AS (   -- attendance per student and date with no instructional attendance day behind it

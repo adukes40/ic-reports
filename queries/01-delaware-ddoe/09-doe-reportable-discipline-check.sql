@@ -10,7 +10,7 @@
               resolution, issue
    Tables:    Calendar, School, BehaviorEvent, BehaviorIncident, BehaviorType, BehaviorRole,
               BehaviorResolution, BehaviorResType, Enrollment, Person, Identity
-   Params:    @startDate (July 1), @endDate (today), @schoolID, @suspPattern ('%susp%'),
+   Params:    @startDate (first calendar day), @endDate (today), @schoolID, @suspPattern ('%susp%'),
               @offenderRoles  (change them in the PARAMETERS block below)
    Check:     Offender is matched by role name (@offenderRoles), and suspensions by
               resolution name or state code (@suspPattern). Confirm both against your
@@ -21,7 +21,7 @@
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @startDate   date = DATEFROMPARTS((SELECT TOP 1 startYear FROM SchoolYear WHERE active = 1), 7, 1);
+DECLARE @startDate   date = (SELECT MIN(c.startDate) FROM Calendar c JOIN SchoolYear sy ON sy.endYear = c.endYear WHERE sy.active = 1 AND c.exclude = 0 AND c.summerSchool = 0);   -- first day of the school year, from the calendars
 DECLARE @endDate     date = CONVERT(date, GETDATE());
 DECLARE @schoolID    int  = NULL;          -- NULL = all schools
 DECLARE @suspPattern varchar(30) = '%susp%';

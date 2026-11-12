@@ -28,7 +28,7 @@ DECLARE @endYear   int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1
 DECLARE @schoolID  int  = NULL;   -- NULL = all schools
 DECLARE @asOf      date = CONVERT(date, GETDATE());
 DECLARE @grades    varchar(200) = 'KG,09';                              -- comma-separated grades; NULL = all grades
-DECLARE @examSince date = DATEFROMPARTS(@endYear - 3, 7, 1);            -- exams dated on or after this count
+DECLARE @examSince date = DATEADD(year, -2, (SELECT MIN(startDate) FROM Calendar WHERE endYear = @endYear AND exclude = 0 AND summerSchool = 0));   -- exams dated on or after this count (2 years before the school year began)
 -- ===========================================================================
 
 WITH act AS (   -- one active primary enrollment per student on @asOf, in @grades

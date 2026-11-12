@@ -51,6 +51,10 @@ Validation checks, lists, KPIs and vendor pulls for Delaware school districts.
 
 The library's search box looks inside every query, so you can search for a table name like `RelatedPair`, a column, or a plain word like *guardian*. On GitHub, the search box at the top of the repository does the same.
 
+## Delaware rules
+
+The state regulations and guidance the queries follow, with links to each rule, are listed on the **[Delaware sources](DELAWARE-SOURCES.md)** page.
+
 ## Request a query
 
 Need something that isn't here? **[Request a query](https://github.com/adukes40/ic-reports/issues/new?template=query-request.yml)** on GitHub and describe what you want to see. You'll need a free GitHub account to submit it.

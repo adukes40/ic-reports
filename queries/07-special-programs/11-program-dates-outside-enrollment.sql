@@ -11,7 +11,7 @@
               Person, Identity
    Params:    @endYear, @schoolID, @yearStart, @yearEnd  (change them in the PARAMETERS
               block below)
-   Check:     The school year is taken as July 1 to June 30 (@yearStart, @yearEnd). Every
+   Check:     The school year runs from the earliest calendar start to the latest calendar end (@yearStart, @yearEnd). Every
               enrollment in any year counts except no-shows, so a program dated in the
               summer between two enrollments will be listed. Programs have no grade range
               in IC, so a grade the program does not serve is not checked.
@@ -23,8 +23,8 @@
 -- ===== PARAMETERS ==========================================================
 DECLARE @endYear   int  = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
 DECLARE @schoolID  int  = NULL;   -- NULL = all schools
-DECLARE @yearStart date = DATEFROMPARTS(@endYear - 1, 7, 1);   -- first day of the school year
-DECLARE @yearEnd   date = DATEFROMPARTS(@endYear, 6, 30);      -- last day of the school year
+DECLARE @yearStart date = (SELECT MIN(startDate) FROM Calendar WHERE endYear = @endYear AND exclude = 0 AND summerSchool = 0);   -- first day of the school year (earliest calendar start)
+DECLARE @yearEnd   date = (SELECT MAX(endDate) FROM Calendar WHERE endYear = @endYear AND exclude = 0 AND summerSchool = 0);     -- last day of the school year (latest calendar end)
 -- ===========================================================================
 
 WITH stu AS (   -- latest primary enrollment per student this year, active or ended

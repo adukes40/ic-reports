@@ -11,7 +11,7 @@
               of the school's incidents
    Tables:    SchoolYear, BehaviorIncident, BehaviorEvent, BehaviorType, Calendar, School,
               CampusAttribute, CampusDictionary
-   Params:    @startDate (July 1), @endDate (today), @schoolID  (change them in the
+   Params:    @startDate (first calendar day), @endDate (today), @schoolID  (change them in the
               PARAMETERS block below)
    Check:     Date, time and location come from the incident (BehaviorIncident). An incident
               saved without a time shows under 00:00. Location shows the dictionary name
@@ -24,7 +24,7 @@
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @startDate date = DATEFROMPARTS((SELECT TOP 1 startYear FROM SchoolYear WHERE active = 1), 7, 1);
+DECLARE @startDate date = (SELECT MIN(c.startDate) FROM Calendar c JOIN SchoolYear sy ON sy.endYear = c.endYear WHERE sy.active = 1 AND c.exclude = 0 AND c.summerSchool = 0);   -- first day of the school year, from the calendars
 DECLARE @endDate   date = CONVERT(date, GETDATE());
 DECLARE @schoolID  int  = NULL;   -- NULL = all schools
 -- ===========================================================================

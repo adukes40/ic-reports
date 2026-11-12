@@ -21,4 +21,6 @@ Open a query, click **Copy content** (top right of the file), and paste it into 
 | 13 | [Gifted date check](13-gifted-date-check.sql) | Not run yet | Gifted records whose identified date is after the start date, and students with more than one open Gifted record. |
 | 14 | [Immunization compliance](14-immunization-compliance.sql) | Not run yet | Active students IC marks non-compliant, with vaccines short, exemptions on file and next dose due. |
 
+The rules behind these checks are listed on the [Delaware sources](../../DELAWARE-SOURCES.md) page.
+
 [← Back to the library](../../README.md)

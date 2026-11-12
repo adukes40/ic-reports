@@ -18,8 +18,7 @@
               in K, 2, 4, 7 and 9 or 10 by January 15 (the default grades), and postural
               and gait screening in grades 5 to 9 by December 15 (14 DE Admin. Code 815,
               4.0): for Scoliosis set @grades to '05,06,07,08,09'. Make sure the grade
-              codes match how your district writes them. "This school year" starts July 1
-              unless you change @since.
+              codes match how your district writes them. "This school year" starts on the earliest calendar start date unless you change @since.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
@@ -31,7 +30,7 @@ DECLARE @schoolID      int  = NULL;   -- NULL = all schools
 DECLARE @asOf          date = CONVERT(date, GETDATE());
 DECLARE @grades        varchar(200) = 'KG,02,04,07,09';                 -- comma-separated grades; NULL = all grades
 DECLARE @screeningType varchar(15)  = 'Vision';                         -- Vision, Hearing, Dental, Scoliosis or Growth
-DECLARE @since         date = DATEFROMPARTS(@endYear - 1, 7, 1);        -- screenings dated on or after this count
+DECLARE @since         date = (SELECT MIN(startDate) FROM Calendar WHERE endYear = @endYear AND exclude = 0 AND summerSchool = 0);   -- screenings dated on or after this count (earliest calendar start)
 -- ===========================================================================
 
 WITH act AS (   -- one active primary enrollment per student on @asOf, in @grades
