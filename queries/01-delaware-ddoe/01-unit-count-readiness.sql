@@ -11,8 +11,8 @@
               enrolled and present, issue
    Tables:    Calendar, School, Day, Enrollment, v_AttDayDetail_Exact, Attendance, Lep,
               Person, Identity
-   Params:    @endYear (active year), @schoolID (NULL = all)  (change them in the PARAMETERS
-              block below)
+   Params:    @endYear (active year), @schoolID (NULL = all), @countMonth, @countDays,
+              @elStatus  (change them in the PARAMETERS block below)
    Check:     Present days = window days enrolled minus full-day absences from
               v_AttDayDetail_Exact. Confirm the window matches DDOE's 10 days for each
               calendar.
@@ -24,6 +24,9 @@
 -- ===== PARAMETERS ==========================================================
 DECLARE @endYear  int = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
 DECLARE @schoolID int = NULL;   -- NULL = all schools
+DECLARE @countMonth int = 9;    -- month the count window falls in (9 = September)
+DECLARE @countDays  int = 10;   -- the window is the last this many instructional days of that month
+DECLARE @elStatus varchar(15) = 'LEP';   -- program status code that means the student is an English learner
 -- ===========================================================================
 
 WITH cal AS (
@@ -40,9 +43,9 @@ sepDays AS (   -- instructional September days, newest first, per calendar/struc
     FROM Day d
     JOIN cal ON cal.calendarID = d.calendarID
     WHERE d.instruction = 1 AND d.attendance = 1
-      AND MONTH(d.date) = 9 AND YEAR(d.date) = @endYear - 1
+      AND MONTH(d.date) = @countMonth AND YEAR(d.date) = @endYear - 1
 ),
-win AS (SELECT calendarID, structureID, date FROM sepDays WHERE rn <= 10),
+win AS (SELECT calendarID, structureID, date FROM sepDays WHERE rn <= @countDays),
 winRange AS (
     SELECT calendarID, structureID, MIN(date) AS winStart, MAX(date) AS winEnd
     FROM win GROUP BY calendarID, structureID
@@ -98,8 +101,8 @@ SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstNa
        pr.grade AS [Grade],
        pr.specialEdStatus AS [Special Ed Status],
        CASE WHEN EXISTS (SELECT 1 FROM Lep l
-                         WHERE l.personID = pr.personID AND l.programStatus = 'LEP'
-                           AND (l.exitDate IS NULL OR l.exitDate >= DATEFROMPARTS(@endYear - 1, 9, 1)))
+                         WHERE l.personID = pr.personID AND l.programStatus = @elStatus
+                           AND (l.exitDate IS NULL OR l.exitDate >= DATEFROMPARTS(@endYear - 1, @countMonth, 1)))
             THEN 'Y' ELSE 'N' END AS [EL],
        pr.daysEnrolled AS [Days Enrolled in Window],
        pr.daysPresent  AS [Days Present in Window],

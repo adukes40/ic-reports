@@ -1,5 +1,5 @@
 /* ======================================================================================
-   #6  End date / end status mismatch
+   #20  End date / end status mismatch
    --------------------------------------------------------------------------------------
    Status:    Not run yet
    Category:  Enrollment & census
@@ -9,8 +9,8 @@
    Output:    One row per problem: grade, dates, end status, issue
    Tables:    Calendar, School, Enrollment, CampusAttribute, CampusDictionary, Person,
               Identity
-   Params:    @endYear, @schoolID, @gradWord ('%grad%')  (change them in the PARAMETERS
-              block below)
+   Params:    @endYear, @schoolID, @gradWord ('%grad%'), @gradGrade (12)  (change them in
+              the PARAMETERS block below)
    Check:     Graduation codes are found by dictionary name containing 'grad'. Confirm
               against your end status list.
    --------------------------------------------------------------------------------------
@@ -22,6 +22,7 @@
 DECLARE @endYear  int = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
 DECLARE @schoolID int = NULL;   -- NULL = all schools
 DECLARE @gradWord varchar(20) = '%grad%';
+DECLARE @gradGrade int = 12;    -- grade number students graduate from
 -- ===========================================================================
 
 WITH gradCodes AS (
@@ -49,8 +50,8 @@ CROSS APPLY (VALUES
     (CASE WHEN e.endDate IS NULL AND NULLIF(LTRIM(RTRIM(e.endStatus)), '') IS NOT NULL
           THEN 'End status with no end date' END),
     (CASE WHEN e.endStatus IN (SELECT code FROM gradCodes)
-           AND TRY_CAST(e.grade AS int) < 12
-          THEN 'Graduation end status below grade 12' END)
+           AND TRY_CAST(e.grade AS int) < @gradGrade
+          THEN 'Graduation end status below grade ' + CAST(@gradGrade AS varchar(3)) END)
 ) x(issue)
 WHERE x.issue IS NOT NULL
   AND c.endYear = @endYear

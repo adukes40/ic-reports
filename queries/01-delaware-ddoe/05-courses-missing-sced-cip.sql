@@ -1,7 +1,7 @@
 /* ======================================================================================
    #5  Courses missing SCED or CIP codes
    --------------------------------------------------------------------------------------
-   Status:    Broken
+   Status:    Not run yet
    Category:  Delaware DOE
    Type:      Validation · Priority 1 · Run BOY, semester
    Purpose:   Active courses with students rostered today but no SCED code, and CTE courses
@@ -9,9 +9,11 @@
    Output:    One row per problem course: school, course number and name, students rostered,
               current codes, issue
    Tables:    Calendar, School, Course, Section, Trial, Roster
-   Params:    @endYear, @schoolID, @asOf  (change them in the PARAMETERS block below)
-   Check:     CTE is detected from Course.vocationalCode. A blank SCED passes if
-              Course.stateCode is filled; adjust if DE wants scedCourseId specifically.
+   Params:    @endYear, @schoolID, @asOf, @cteSubjectAreas  (change them in the PARAMETERS
+              block below)
+   Check:     A course counts as CTE when its SCED subject area is 10 to 21 (the career
+              and technical areas); change @cteSubjectAreas if your CTE courses are
+              coded differently. A blank SCED passes if Course.stateCode is filled.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
@@ -21,11 +23,12 @@
 DECLARE @endYear  int = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
 DECLARE @schoolID int = NULL;   -- NULL = all schools
 DECLARE @asOf     date = CONVERT(date, GETDATE());
+DECLARE @cteSubjectAreas varchar(200) = '10,11,12,13,14,15,16,17,18,19,20,21';   -- SCED subject areas that are CTE, comma-separated
 -- ===========================================================================
 
 WITH crs AS (
     SELECT co.courseID, co.number AS courseNumber, co.name AS courseName,
-           co.stateCode, co.scedSubjectArea, co.scedCourseId, co.cipCode, co.vocationalCode,
+           co.stateCode, co.scedSubjectArea, co.scedCourseId, co.cipCode,
            c.schoolID, s.name AS schoolName, c.endYear,
            (SELECT COUNT(DISTINCT r.personID)
               FROM Section se
@@ -45,14 +48,14 @@ WITH crs AS (
 )
 SELECT crs.schoolID AS [School ID], crs.schoolName AS [School], crs.endYear AS [School Year],
        crs.courseNumber AS [Course Number], crs.courseName AS [Course Name], crs.studentCount AS [Student Count],
-       crs.stateCode AS [State Code], crs.scedSubjectArea AS [SCED Subject Area], crs.scedCourseId AS [SCED Course ID], crs.cipCode AS [CIP Code], crs.vocationalCode AS [Vocational Code],
+       crs.stateCode AS [State Code], crs.scedSubjectArea AS [SCED Subject Area], crs.scedCourseId AS [SCED Course ID], crs.cipCode AS [CIP Code],
        x.issue AS [Issue]
 FROM crs
 CROSS APPLY (VALUES
     (CASE WHEN NULLIF(LTRIM(RTRIM(crs.scedCourseId)), '') IS NULL
            AND NULLIF(LTRIM(RTRIM(crs.stateCode)), '') IS NULL
           THEN 'No SCED course code' END),
-    (CASE WHEN NULLIF(LTRIM(RTRIM(crs.vocationalCode)), '') IS NOT NULL
+    (CASE WHEN crs.scedSubjectArea IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@cteSubjectAreas, ','))
            AND NULLIF(LTRIM(RTRIM(crs.cipCode)), '') IS NULL
           THEN 'CTE course with no CIP code' END)
 ) x(issue)

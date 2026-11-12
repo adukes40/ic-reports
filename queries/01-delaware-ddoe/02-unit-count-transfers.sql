@@ -9,8 +9,8 @@
    Output:    One row per moving enrollment: movement, window dates, start/end dates and
               status, prior school, next school, resident/serving district
    Tables:    Calendar, School, Day, Enrollment, Person, Identity
-   Params:    @endYear, @schoolID, @lookbackDays (30, for the prior in-district school)
-              (change them in the PARAMETERS block below)
+   Params:    @endYear, @schoolID, @lookbackDays (30, for the prior in-district school),
+              @countMonth (9), @countDays (10)  (change them in the PARAMETERS block below)
    Check:     Prior school finds only in-district enrollments. Out-of-state or other-
               district senders show as blank.
    --------------------------------------------------------------------------------------
@@ -22,6 +22,8 @@
 DECLARE @endYear  int = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
 DECLARE @schoolID int = NULL;   -- NULL = all schools
 DECLARE @lookbackDays int = 30; -- how far back to look for the student's prior school
+DECLARE @countMonth   int = 9;  -- month the count window falls in (9 = September)
+DECLARE @countDays    int = 10; -- the window is the last this many instructional days of that month
 -- ===========================================================================
 
 WITH cal AS (
@@ -38,11 +40,11 @@ sepDays AS (
     FROM Day d
     JOIN cal ON cal.calendarID = d.calendarID
     WHERE d.instruction = 1 AND d.attendance = 1
-      AND MONTH(d.date) = 9 AND YEAR(d.date) = @endYear - 1
+      AND MONTH(d.date) = @countMonth AND YEAR(d.date) = @endYear - 1
 ),
 winRange AS (
     SELECT calendarID, structureID, MIN(date) AS winStart, MAX(date) AS winEnd
-    FROM sepDays WHERE rn <= 10
+    FROM sepDays WHERE rn <= @countDays
     GROUP BY calendarID, structureID
 )
 SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstName AS [First Name],
@@ -58,7 +60,7 @@ SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstNa
        CONVERT(date, e.endDate)   AS [End Date],   e.endStatus AS [End Status],
        prior.priorSchool AS [Prior School],                        -- where an entering student came from (in-district)
        nxt.name                    AS [Next School], -- where a leaving student is going (if set)
-       e.residentDistrict AS [Resident District], e.servingDistrict AS [Serving District]
+       e.residentDistrict AS [Resident District]
 FROM Enrollment e
 JOIN winRange w ON w.calendarID = e.calendarID AND w.structureID = e.structureID
 JOIN cal ON cal.calendarID = e.calendarID

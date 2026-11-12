@@ -1,0 +1,24 @@
+# Grades, transcripts & graduation
+
+Missing posted grades, failures, credit checks, transcripts and graduation tracking.
+
+Open a query, click **Copy content** (top right of the file), and paste it into IC's data extract tool.
+
+| # | Query | Status | What it finds |
+|---|---|---|---|
+| 65 | [Grades not posted](01-grades-not-posted.sql) | Not run yet | Sections where at least one rostered student has no posted score for a grading task the course is set to grade in the term. |
+| 66 | [D/F list](02-d-f-list.sql) | Not run yet | Active students with a D or F in the term, by course, section and teacher. Uses the posted grade, or the in-progress grade when nothing is posted yet. |
+| 67 | [Course failures by section](03-course-failures-by-section.sql) | Not run yet | D and F counts and the D/F rate for every section's posted grades in the term, with the teacher, to spot outliers. |
+| 68 | [Middle school course warning](04-middle-school-course-warning.sql) | Not run yet | Active grade 6-8 students failing an English or math course in the term, or with a term GPA under the minimum (2.0). |
+| 69 | [High school course warning](05-high-school-course-warning.sql) | Not run yet | Active grade 9-12 students with a failing grade in any course in the term. |
+| 70 | [Seniors not on track to graduate](06-seniors-not-on-track-to-graduate.sql) | Not run yet | Active 12th graders whose earned plus in-progress credits fall short of the graduation requirement, in total or in any credit area. |
+| 71 | [Credit-deficient students by grade](07-credit-deficient-students-by-grade.sql) | Not run yet | Active grade 9-12 students whose total earned transcript credits are below the number expected for their grade. |
+| 72 | [Transcripts with no GPA](08-transcripts-with-no-gpa.sql) | Not run yet | This year's transcript rows that should count toward GPA but cannot, and grade 9-12 students who have transcript rows but no cumulative GPA. |
+| 73 | [Duplicate / invalid stored grades](09-duplicate-invalid-stored-grades.sql) | Not run yet | Transcript rows posted more than once for the same student, course, term and year, and transcript rows with a blank or unrecognised mark. |
+| 74 | [Grade changes after posting](10-grade-changes-after-posting.sql) | Not run yet | Posted grades whose record was last changed after grading closed for the term. |
+| 75 | [Grade book usage](11-grade-book-usage.sql) | Not run yet | For every graded section meeting this term, how many assignments have at least one score and when a score was last entered. Flags sections with fewer than the minimum. |
+| 76 | [Missing assignments by student](12-missing-assignments-by-student.sql) | Not run yet | Assignments flagged Missing in the grade book for active students, due in the date range, in classes they are still in. |
+| 77 | [Honor roll / class rank](13-honor-roll-class-rank.sql) | Not run yet | Active students whose term GPA meets the minimum, with their cumulative GPA and class rank within their school and grade. |
+| 78 | [Graduation cohort tracking](14-graduation-cohort-tracking.sql) | Not run yet | Every student in the chosen graduation cohorts with a status (graduated in 4, 5 or 6 years, still enrolled, left) and the counts and 4-year rate for their cohort and school. |
+
+[← Back to the library](../../README.md)

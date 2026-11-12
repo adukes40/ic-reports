@@ -10,8 +10,9 @@
               school numerator / denominator / %
    Tables:    Calendar, School, Enrollment, TranscriptCourse, TranscriptCredit, Person,
               Identity
-   Params:    @endYear, @schoolID, @minCredits (4), @minAreas (4), @asOf  (change them in
-              the PARAMETERS block below)
+   Params:    @endYear, @schoolID, @minCredits (4), @minAreas (4), @asOf, @grade9,
+              @elaArea, @mathArea, @scienceArea, @socStudiesArea, @worldLangArea  (change
+              them in the PARAMETERS block below)
    Check:     On track = 4+ core credits AND credit in 4+ of the 5 areas; confirm against
               DDOE's definition. Only posted transcript credit counts.
    --------------------------------------------------------------------------------------
@@ -25,6 +26,12 @@ DECLARE @schoolID   int = NULL;   -- NULL = all schools
 DECLARE @minCredits decimal(5,2) = 4;
 DECLARE @minAreas   int = 4;
 DECLARE @asOf       date = CONVERT(date, GETDATE());
+DECLARE @grade9         varchar(5) = '09';   -- grade name of 9th grade
+DECLARE @elaArea        varchar(5) = '01';   -- SCED subject area code for English language arts
+DECLARE @mathArea       varchar(5) = '02';   -- SCED subject area code for math
+DECLARE @scienceArea    varchar(5) = '03';   -- SCED subject area code for science
+DECLARE @socStudiesArea varchar(5) = '04';   -- SCED subject area code for social studies
+DECLARE @worldLangArea  varchar(5) = '24';   -- SCED subject area code for world languages
 -- ===========================================================================
 
 WITH g9 AS (   -- first-time 9th graders with a current primary enrollment
@@ -36,19 +43,19 @@ WITH g9 AS (   -- first-time 9th graders with a current primary enrollment
     WHERE c.endYear = @endYear
       AND c.exclude = 0 AND c.summerSchool = 0 AND s.exclude = 0
       AND e.serviceType = 'P' AND e.stateExclude = 0
-      AND e.grade = '09'
+      AND e.grade = @grade9
       AND e.startDate <= @asOf AND (e.endDate IS NULL OR e.endDate >= @asOf)
       AND (@schoolID IS NULL OR c.schoolID = @schoolID)
       AND NOT EXISTS (SELECT 1 FROM Enrollment ep
                       JOIN Calendar cp ON cp.calendarID = ep.calendarID
-                      WHERE ep.personID = e.personID AND ep.grade = '09'
+                      WHERE ep.personID = e.personID AND ep.grade = @grade9
                         AND cp.endYear < @endYear)
 ),
 cred AS (
     SELECT tc.personID,
            CASE COALESCE(NULLIF(tc.scedSubjectArea, ''), LEFT(tc.scedCourseId, 2))
-                WHEN '01' THEN 'ELA' WHEN '02' THEN 'Math' WHEN '03' THEN 'Science'
-                WHEN '04' THEN 'SocialStudies' WHEN '24' THEN 'WorldLang' END AS area,
+                WHEN @elaArea THEN 'ELA' WHEN @mathArea THEN 'Math' WHEN @scienceArea THEN 'Science'
+                WHEN @socStudiesArea THEN 'SocialStudies' WHEN @worldLangArea THEN 'WorldLang' END AS area,
            SUM(ISNULL(cr.creditsEarned, 0)) AS credits
     FROM TranscriptCourse tc
     JOIN TranscriptCredit cr ON cr.transcriptID = tc.transcriptID
@@ -56,8 +63,8 @@ cred AS (
       AND tc.personID IN (SELECT personID FROM g9 WHERE rn = 1)
     GROUP BY tc.personID,
              CASE COALESCE(NULLIF(tc.scedSubjectArea, ''), LEFT(tc.scedCourseId, 2))
-                  WHEN '01' THEN 'ELA' WHEN '02' THEN 'Math' WHEN '03' THEN 'Science'
-                  WHEN '04' THEN 'SocialStudies' WHEN '24' THEN 'WorldLang' END
+                  WHEN @elaArea THEN 'ELA' WHEN @mathArea THEN 'Math' WHEN @scienceArea THEN 'Science'
+                  WHEN @socStudiesArea THEN 'SocialStudies' WHEN @worldLangArea THEN 'WorldLang' END
 ),
 stu AS (
     SELECT g.personID, g.schoolID, g.schoolName, g.endYear,
@@ -79,7 +86,7 @@ flag AS (
     FROM stu
 )
 SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstName AS [First Name],
-       f.schoolID AS [School ID], f.schoolName AS [School], f.endYear AS [School Year], '09' AS [Grade],
+       f.schoolID AS [School ID], f.schoolName AS [School], f.endYear AS [School Year], @grade9 AS [Grade],
        f.elaCredits AS [ELA Credits], f.mathCredits AS [Math Credits], f.scienceCredits AS [Science Credits], f.socStudiesCredits AS [Social Studies Credits], f.worldLangCredits AS [World Language Credits],
        f.coreCredits AS [Core Credits], f.areasWithCredit AS [Areas With Credit],
        CASE f.onTrack WHEN 1 THEN 'On track' ELSE 'Not on track' END AS [Status],

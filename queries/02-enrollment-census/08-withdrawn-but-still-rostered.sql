@@ -1,5 +1,5 @@
 /* ======================================================================================
-   #8  Withdrawn but still rostered
+   #22  Withdrawn but still rostered
    --------------------------------------------------------------------------------------
    Status:    Not run yet
    Category:  Enrollment & census
@@ -23,7 +23,8 @@ DECLARE @schoolID int = NULL;   -- NULL = all schools
 
 WITH lastEnr AS (   -- each student's latest enrollment end per calendar
     SELECT e.personID, e.calendarID, MAX(e.grade) AS grade,
-           MAX(ISNULL(e.endDate, '9999-12-31')) AS lastEnd
+           MAX(e.endDate) AS lastEnd,
+           MAX(CASE WHEN e.endDate IS NULL THEN 1 ELSE 0 END) AS stillEnrolled
     FROM Enrollment e
     JOIN Calendar c ON c.calendarID = e.calendarID
     WHERE c.endYear = @endYear
@@ -46,8 +47,8 @@ JOIN Section se ON se.sectionID = r.sectionID
 JOIN Course  co ON co.courseID  = se.courseID
 JOIN Person   p ON p.personID   = le.personID
 JOIN [Identity] i ON i.identityID = p.currentIdentityID
-WHERE le.lastEnd < '9999-12-31'
-  AND ISNULL(r.endDate, '9999-12-31') > le.lastEnd
+WHERE le.stillEnrolled = 0
+  AND (r.endDate IS NULL OR r.endDate > le.lastEnd)
   AND (r.startDate IS NULL OR r.startDate <= le.lastEnd)
   AND c.exclude = 0 AND s.exclude = 0
   AND (@schoolID IS NULL OR c.schoolID = @schoolID)

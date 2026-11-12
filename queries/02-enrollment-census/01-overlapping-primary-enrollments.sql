@@ -1,5 +1,5 @@
 /* ======================================================================================
-   #1  Overlapping primary enrollments
+   #15  Overlapping primary enrollments
    --------------------------------------------------------------------------------------
    Status:    Not run yet
    Category:  Enrollment & census
@@ -39,8 +39,8 @@ SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstNa
 FROM enr a
 JOIN enr b ON b.personID = a.personID
           AND b.enrollmentID > a.enrollmentID
-          AND a.startDate <= ISNULL(b.endDate, '9999-12-31')
-          AND b.startDate <= ISNULL(a.endDate, '9999-12-31')
+          AND (b.endDate IS NULL OR a.startDate <= b.endDate)
+          AND (a.endDate IS NULL OR b.startDate <= a.endDate)
 JOIN Person p ON p.personID = a.personID
 JOIN [Identity] i ON i.identityID = p.currentIdentityID
 WHERE (@schoolID IS NULL OR a.schoolID = @schoolID OR b.schoolID = @schoolID)

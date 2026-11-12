@@ -1,5 +1,5 @@
 /* ======================================================================================
-   #10  Age out of range for grade
+   #24  Age out of range for grade
    --------------------------------------------------------------------------------------
    Status:    Not run yet
    Category:  Enrollment & census
@@ -8,8 +8,9 @@
               missing birthdate.
    Output:    One row per problem: grade, birthdate, age on Sept 1, issue
    Tables:    Calendar, School, Enrollment, Person, Identity
-   Params:    @endYear, @schoolID, @maxAge (21), @kGrades (K codes list)  (change them in
-              the PARAMETERS block below)
+   Params:    @endYear, @schoolID, @maxAge (21), @kGrades (K codes list), @kMinAge (4),
+              @kMaxAge (7), @minGrade (1), @maxGrade (12), @youngestOverGrade (4),
+              @oldestOverGrade (8)  (change them in the PARAMETERS block below)
    Check:     Edit @kGrades to your kindergarten grade codes. Non-numeric grades only get
               the over-21 check.
    --------------------------------------------------------------------------------------
@@ -23,6 +24,12 @@ DECLARE @schoolID int = NULL;   -- NULL = all schools
 DECLARE @maxAge   int = 21;
 DECLARE @kGrades TABLE (grade varchar(5));
 INSERT INTO @kGrades VALUES ('K'), ('KG'), ('KN'), ('00');   -- your kindergarten grade codes
+DECLARE @kMinAge  int = 4;      -- youngest expected age in kindergarten
+DECLARE @kMaxAge  int = 7;      -- oldest expected age in kindergarten
+DECLARE @minGrade int = 1;      -- lowest grade number that gets the age-for-grade check
+DECLARE @maxGrade int = 12;     -- highest grade number that gets the age-for-grade check
+DECLARE @youngestOverGrade int = 4;   -- youngest expected age = grade number + this (grade 3: 7)
+DECLARE @oldestOverGrade   int = 8;   -- oldest expected age = grade number + this (grade 3: 11)
 -- ===========================================================================
 
 WITH base AS (
@@ -46,11 +53,11 @@ SELECT studentNumber AS [Student Number], lastName AS [Last Name], firstName AS 
        CONVERT(date, birthdate) AS [Birth Date], ageSept1 AS [Age on Sept 1],
        CASE WHEN birthdate IS NULL THEN 'No birthdate'
             WHEN ageSept1 > @maxAge THEN 'Over ' + CAST(@maxAge AS varchar(3))
-            WHEN g = 0 THEN 'Kindergarten age outside 4-7'
-            ELSE 'Age outside ' + CAST(g + 4 AS varchar(3)) + '-' + CAST(g + 8 AS varchar(3)) + ' for grade' END AS [Issue]
+            WHEN g = 0 THEN 'Kindergarten age outside ' + CAST(@kMinAge AS varchar(3)) + '-' + CAST(@kMaxAge AS varchar(3))
+            ELSE 'Age outside ' + CAST(g + @youngestOverGrade AS varchar(3)) + '-' + CAST(g + @oldestOverGrade AS varchar(3)) + ' for grade' END AS [Issue]
 FROM base
 WHERE birthdate IS NULL
    OR ageSept1 > @maxAge
-   OR (g = 0 AND (ageSept1 < 4 OR ageSept1 > 7))
-   OR (g BETWEEN 1 AND 12 AND (ageSept1 < g + 4 OR ageSept1 > g + 8))
+   OR (g = 0 AND (ageSept1 < @kMinAge OR ageSept1 > @kMaxAge))
+   OR (g BETWEEN @minGrade AND @maxGrade AND (ageSept1 < g + @youngestOverGrade OR ageSept1 > g + @oldestOverGrade))
 ORDER BY [School], [Grade], [Last Name];

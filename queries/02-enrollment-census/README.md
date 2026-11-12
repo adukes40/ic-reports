@@ -1,25 +1,25 @@
 # Enrollment & census
 
-Enrollment records that are overlapping, missing, mis-dated or mis-coded.
+Enrollment records that overlap, are missing, or have wrong dates or codes.
 
 Open a query, click **Copy content** (top right of the file), and paste it into IC's data extract tool.
 
 | # | Query | Status | What it finds |
 |---|---|---|---|
-| 1 | [Overlapping primary enrollments](01-overlapping-primary-enrollments.sql) | Not run yet | Students with two primary enrollments whose dates overlap, shown side by side. |
-| 2 | [Prior-year enrollment not ended](02-prior-year-enrollment-not-ended.sql) | Not run yet | Enrollments in calendars before @endYear that still have no end date. |
-| 3 | [Grade level not in calendar](03-grade-level-not-in-calendar.sql) | Not run yet | Current-year enrollments whose grade isn't set up in that calendar and schedule structure. |
-| 4 | [Enrolled with no schedule](04-enrolled-with-no-schedule.sql) | Not run yet | Active primary enrollments with no roster row in the active trial on @asOf. |
-| 5 | [Duplicate people / duplicate IDs](05-duplicate-people-ids.sql) | Not run yet | Same first name, last name and birthdate, plus any studentNumber or stateID shared by two or more people. |
-| 6 | [End date / end status mismatch](06-end-date-end-status-mismatch.sql) | Not run yet | End date with no end status, end status with no end date, or a graduation end status below grade 12. |
-| 7 | [Enrollment dates outside calendar](07-enrollment-dates-outside-calendar.sql) | Not run yet | Enrollments that start before the calendar starts or end after it ends. |
-| 8 | [Withdrawn but still rostered](08-withdrawn-but-still-rostered.sql) | Not run yet | Active-trial roster rows left open, or ending after the student's last enrollment end in that calendar. |
-| 9 | [No-shows](09-no-shows.sql) | Not run yet | Active primary enrollments with no day present since the start date. |
-| 10 | [Age out of range for grade](10-age-out-of-range-for-grade.sql) | Not run yet | Age on Sept 1 outside the usual range for the grade, any student over 21, or a missing birthdate. |
-| 11 | [State-excluded enrollments](11-state-excluded-enrollments.sql) | Not run yet | Current-year enrollments with state exclude set, so each can be confirmed. |
-| 12 | [Active student with a graduation date](12-active-student-with-graduation-date.sql) | Not run yet | Students active today who already have a diploma date or diploma type on any enrollment. |
-| 13 | [Next-year placement missing](13-next-year-placement-missing.sql) | Not run yet | Active students below grade 12 with no next-year placement, or a next grade the next calendar doesn't offer. |
-| 14 | [Secondary enrollment with no primary](14-secondary-enrollment-no-primary.sql) | Not run yet | Active secondary or partial enrollments for students with no active primary enrollment on the same date. |
-| 15 | [Very short enrollments](15-very-short-enrollments.sql) | Not run yet | Ended enrollments this year that lasted fewer than @minDays instructional days. |
+| 15 | [Overlapping primary enrollments](01-overlapping-primary-enrollments.sql) | Not run yet | Students with two primary enrollments whose dates overlap, shown side by side. |
+| 16 | [Prior-year enrollment not ended](02-prior-year-enrollment-not-ended.sql) | Not run yet | Enrollments in calendars before @endYear that still have no end date. |
+| 17 | [Grade level not in calendar](03-grade-level-not-in-calendar.sql) | Not run yet | Current-year enrollments whose grade isn't set up in that calendar and schedule structure. |
+| 18 | [Enrolled with no schedule](04-enrolled-with-no-schedule.sql) | Not run yet | Active primary enrollments with no roster row in the active trial on @asOf. |
+| 19 | [Duplicate people / duplicate IDs](05-duplicate-people-ids.sql) | Not run yet | Same first name, last name and birthdate, plus any studentNumber or stateID shared by two or more people. |
+| 20 | [End date / end status mismatch](06-end-date-end-status-mismatch.sql) | Not run yet | End date with no end status, end status with no end date, or a graduation end status below grade 12. |
+| 21 | [Enrollment dates outside calendar](07-enrollment-dates-outside-calendar.sql) | Not run yet | Enrollments that start before the calendar starts or end after it ends. |
+| 22 | [Withdrawn but still rostered](08-withdrawn-but-still-rostered.sql) | Not run yet | Active-trial roster rows left open, or ending after the student's last enrollment end in that calendar. |
+| 23 | [No-shows](09-no-shows.sql) | Not run yet | Active primary enrollments with no day present since the start date. |
+| 24 | [Age out of range for grade](10-age-out-of-range-for-grade.sql) | Not run yet | Age on Sept 1 outside the usual range for the grade, any student over 21, or a missing birthdate. |
+| 25 | [State-excluded enrollments](11-state-excluded-enrollments.sql) | Not run yet | Current-year enrollments with state exclude set, so each can be confirmed. |
+| 26 | [Active student with a graduation date](12-active-student-with-graduation-date.sql) | Not run yet | Students active today who already have a diploma date or diploma type on their graduation record. |
+| 27 | [Next-year placement missing](13-next-year-placement-missing.sql) | Not run yet | Active students below grade 12 with no next-year placement, or a next grade the next calendar doesn't offer. |
+| 28 | [Secondary enrollment with no primary](14-secondary-enrollment-no-primary.sql) | Not run yet | Active secondary or partial enrollments for students with no active primary enrollment on the same date. |
+| 29 | [Very short enrollments](15-very-short-enrollments.sql) | Not run yet | Ended enrollments this year that lasted fewer than @minDays instructional days. |
 
 [← Back to the library](../../README.md)

@@ -11,9 +11,9 @@
               like Disruption (3), Fighting (1)
    Tables:    SchoolYear, BehaviorEvent, BehaviorRole, BehaviorType, Calendar, School,
               Enrollment, Person, Identity
-   Params:    @endYear, @schoolID, @schoolName (partial match)  (change them in the
-              PARAMETERS block below)
-   Check:     Role names must match your BehaviorRole.role values exactly. A student in two
+   Params:    @endYear, @schoolID, @schoolName (partial match), @countedRoles  (change them
+              in the PARAMETERS block below)
+   Check:     @countedRoles must match your BehaviorRole.role values exactly. A student in two
               roles on the same event counts once. A student with events at two schools gets
               a row for each. Adapted from a query by Matthew Prins (2026).
    --------------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ SET NOCOUNT ON;   -- stops row-count messages from hiding the results in the ext
 DECLARE @endYear    int          = (SELECT TOP 1 endYear FROM SchoolYear WHERE active = 1);
 DECLARE @schoolID   int          = NULL;   -- NULL = all schools
 DECLARE @schoolName varchar(100) = '';     -- partial school name, e.g. 'Washington'; '' = all
+DECLARE @countedRoles varchar(200) = 'Offender,Participant';   -- role names to count, comma-separated
 -- ===========================================================================
 
 WITH studentEvents AS (   -- one row per student per event
@@ -37,7 +38,7 @@ WITH studentEvents AS (   -- one row per student per event
     JOIN Calendar c      ON c.calendarID = be.calendarID
     JOIN School   s      ON s.schoolID   = c.schoolID
     LEFT JOIN BehaviorType bt ON bt.typeID = be.typeID
-    WHERE br.role IN ('Offender', 'Participant')   -- roles to count
+    WHERE br.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@countedRoles, ','))   -- roles to count
       AND c.endYear = @endYear
       AND c.exclude = 0 AND c.summerSchool = 0 AND s.exclude = 0
       AND (@schoolID IS NULL OR c.schoolID = @schoolID)

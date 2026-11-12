@@ -1,53 +1,56 @@
 /* ======================================================================================
    #9  DOE-reportable discipline check
    --------------------------------------------------------------------------------------
-   Status:    Broken
+   Status:    Not run yet
    Category:  Delaware DOE
    Type:      Validation · Priority 1 · Run Monthly
    Purpose:   On state-coded behavior events: offenders with no resolution, suspensions
               missing start, end or length, and offenders missing gender, race or grade.
    Output:    One row per problem: student, school, grade, event, date, type, state code,
               resolution, issue
-   Tables:    Calendar, School, BehaviorEvent, BehaviorType, BehaviorRole,
+   Tables:    Calendar, School, BehaviorEvent, BehaviorIncident, BehaviorType, BehaviorRole,
               BehaviorResolution, BehaviorResType, Enrollment, Person, Identity
-   Params:    @startDate (July 1), @endDate (today), @schoolID, @suspPattern ('%susp%')
-              (change them in the PARAMETERS block below)
-   Check:     Offender is matched as role = 'Offender', and suspensions by resolution name
-              or state code. Confirm both against your codes.
+   Params:    @startDate (first calendar day), @endDate (today), @schoolID, @suspPattern ('%susp%'),
+              @offenderRoles  (change them in the PARAMETERS block below)
+   Check:     Offender is matched by role name (@offenderRoles), and suspensions by
+              resolution name or state code (@suspPattern). Confirm both against your
+              codes.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
    ====================================================================================== */
 
 -- ===== PARAMETERS ==========================================================
-DECLARE @startDate   date = DATEFROMPARTS((SELECT TOP 1 startYear FROM SchoolYear WHERE active = 1), 7, 1);
+DECLARE @startDate   date = (SELECT MIN(c.startDate) FROM Calendar c JOIN SchoolYear sy ON sy.endYear = c.endYear WHERE sy.active = 1 AND c.exclude = 0 AND c.summerSchool = 0);   -- first day of the school year, from the calendars
 DECLARE @endDate     date = CONVERT(date, GETDATE());
 DECLARE @schoolID    int  = NULL;          -- NULL = all schools
 DECLARE @suspPattern varchar(30) = '%susp%';
+DECLARE @offenderRoles varchar(100) = 'Offender';   -- role names counted as the offender, comma-separated
 -- ===========================================================================
 
 WITH ev AS (
-    SELECT be.eventID, be.calendarID, be.timestamp, bt.name AS eventType, bt.stateEventCode,
+    SELECT be.eventID, be.calendarID, bi.timestamp, bt.name AS eventType, bt.stateEventCode,
            c.schoolID, s.name AS schoolName, c.endYear
     FROM BehaviorEvent be
+    JOIN BehaviorIncident bi ON bi.incidentID = be.incidentID   -- the date is on the incident
     JOIN BehaviorType bt ON bt.typeID = be.typeID
     JOIN Calendar c ON c.calendarID = be.calendarID
     JOIN School   s ON s.schoolID   = c.schoolID
-    WHERE be.timestamp >= @startDate AND be.timestamp < DATEADD(day, 1, @endDate)
+    WHERE bi.timestamp >= @startDate AND bi.timestamp < DATEADD(day, 1, @endDate)
       AND NULLIF(LTRIM(RTRIM(bt.stateEventCode)), '') IS NOT NULL
       AND c.exclude = 0 AND s.exclude = 0
       AND (@schoolID IS NULL OR c.schoolID = @schoolID)
 ),
-off AS (
+offender AS (
     SELECT ev.*, br.roleID, br.personID
     FROM ev
     JOIN BehaviorRole br ON br.eventID = ev.eventID
-    WHERE br.role = 'Offender'
+    WHERE br.role IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@offenderRoles, ','))
 ),
 problems AS (
     SELECT o.personID, o.eventID, o.calendarID, o.timestamp, o.eventType, o.stateEventCode,
            NULL AS resolution, 'Offender has no resolution' AS issue
-    FROM off o
+    FROM offender o
     WHERE NOT EXISTS (SELECT 1 FROM BehaviorResolution r WHERE r.roleID = o.roleID)
 
     UNION ALL
@@ -57,7 +60,7 @@ problems AS (
            CASE WHEN r.timestamp IS NULL THEN 'Suspension has no start date'
                 WHEN r.endDate   IS NULL THEN 'Suspension has no end date'
                 ELSE 'Suspension has no length' END
-    FROM off o
+    FROM offender o
     JOIN BehaviorResolution r ON r.roleID = o.roleID
     JOIN BehaviorResType rt   ON rt.typeID = r.typeID
     WHERE (rt.name LIKE @suspPattern OR rt.stateResCode LIKE @suspPattern)
@@ -68,7 +71,7 @@ problems AS (
 
     SELECT o.personID, o.eventID, o.calendarID, o.timestamp, o.eventType, o.stateEventCode,
            NULL, x.issue
-    FROM off o
+    FROM offender o
     JOIN Person p ON p.personID = o.personID
     JOIN [Identity] i ON i.identityID = p.currentIdentityID
     OUTER APPLY (SELECT TOP 1 e.grade FROM Enrollment e

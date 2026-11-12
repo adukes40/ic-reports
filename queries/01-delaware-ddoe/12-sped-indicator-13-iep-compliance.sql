@@ -10,10 +10,12 @@
               start and end, issue
    Tables:    Calendar, School, Enrollment, Plan, PlanType,
               v_LearningPlanDetailPostHighSchoolDE, Person, Identity
-   Params:    @endYear, @schoolID, @transitionAge (14), @asOf  (change them in the
-              PARAMETERS block below)
-   Check:     IEPs are found as specialEd plan types with type or name IEP. DE uses age 14
-              for transition (federal is 16).
+   Params:    @endYear, @schoolID, @transitionAge (14), @asOf, @transitionGrade (8),
+              @planType, @planNameLike  (change them in the PARAMETERS block below)
+   Check:     IEPs are found as specialEd plan types with type or name IEP. Delaware
+              starts transition with the first IEP in effect when the student turns 14 or
+              enters grade 8, whichever comes first (14 DE Admin. Code 925, 7.2), so both
+              are tested.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
@@ -24,10 +26,13 @@ DECLARE @endYear       int = (SELECT TOP 1 endYear FROM SchoolYear WHERE active 
 DECLARE @schoolID      int = NULL;   -- NULL = all schools
 DECLARE @transitionAge int = 14;
 DECLARE @asOf          date = CONVERT(date, GETDATE());
+DECLARE @transitionGrade int = 8;                -- grade number at which transition planning starts
+DECLARE @planType      varchar(20) = 'IEP';      -- plan type code that is an IEP
+DECLARE @planNameLike  varchar(50) = '%IEP%';    -- plan type names that are IEPs (% = any text)
 -- ===========================================================================
 
 WITH stu AS (   -- current primary enrollments
-    SELECT e.personID, c.schoolID, s.name AS schoolName, c.endYear, e.grade, e.specialEdStatus,
+    SELECT e.personID, c.schoolID, s.name AS schoolName, c.endYear, e.grade,
            ROW_NUMBER() OVER (PARTITION BY e.personID ORDER BY e.startDate DESC) AS rn
     FROM Enrollment e
     JOIN Calendar c ON c.calendarID = e.calendarID
@@ -44,7 +49,7 @@ iep AS (        -- latest locked IEP per student
     FROM [Plan] pl
     JOIN PlanType pt ON pt.typeID = pl.typeID
     WHERE pt.module = 'specialEd'
-      AND (pt.type = 'IEP' OR pt.name LIKE '%IEP%')
+      AND (pt.type = @planType OR pt.name LIKE @planNameLike)
       AND pl.locked = 1
       AND ISNULL(pl.archive, 0) = 0
 ),
@@ -60,7 +65,7 @@ cur AS (
 )
 SELECT p.studentNumber AS [Student Number], i.lastName AS [Last Name], i.firstName AS [First Name],
        cur.schoolID AS [School ID], cur.schoolName AS [School], cur.endYear AS [School Year], cur.grade AS [Grade],
-       cur.age AS [Age], cur.specialEdStatus AS [Special Ed Status], cur.planType AS [Plan Type],
+       cur.age AS [Age], cur.planType AS [Plan Type],
        CONVERT(date, cur.iepStart) AS [IEP Start],
        CONVERT(date, cur.iepEnd)   AS [IEP End],
        x.issue AS [Issue]
@@ -69,7 +74,7 @@ JOIN Person p ON p.personID = cur.personID
 JOIN [Identity] i ON i.identityID = p.currentIdentityID
 CROSS APPLY (VALUES
     (CASE WHEN cur.iepEnd < @asOf THEN 'Latest IEP is past its end date' END),
-    (CASE WHEN cur.age >= @transitionAge
+    (CASE WHEN (cur.age >= @transitionAge OR TRY_CAST(cur.grade AS int) >= @transitionGrade)   -- transition age or grade, whichever is first
            AND NOT EXISTS (SELECT 1 FROM v_LearningPlanDetailPostHighSchoolDE ph
                            WHERE ph.planID = cur.planID
                              AND (NULLIF(LTRIM(RTRIM(ph.postSchoolEmploymentGoal)), '') IS NOT NULL
