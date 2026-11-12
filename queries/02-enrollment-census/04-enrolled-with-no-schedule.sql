@@ -1,7 +1,7 @@
 /* ======================================================================================
    #18  Enrolled with no schedule
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Enrollment & census
    Type:      Validation · Priority 1 · Run BOY, ongoing
    Purpose:   Active primary enrollments with no roster row in the active trial on @asOf.

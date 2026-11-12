@@ -1,7 +1,7 @@
 /* ======================================================================================
    #22  Withdrawn but still rostered
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Enrollment & census
    Type:      Validation · Priority 1 · Run Ongoing
    Purpose:   Active-trial roster rows left open, or ending after the student's last

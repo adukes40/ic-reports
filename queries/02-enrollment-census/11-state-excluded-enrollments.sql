@@ -1,7 +1,7 @@
 /* ======================================================================================
    #25  State-excluded enrollments
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Enrollment & census
    Type:      List · Priority 2 · Run BOY, Sept
    Purpose:   Current-year enrollments with state exclude set, so each can be confirmed.

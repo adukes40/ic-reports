@@ -1,7 +1,7 @@
 /* ======================================================================================
    #24  Age out of range for grade
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Enrollment & census
    Type:      Validation · Priority 2 · Run BOY
    Purpose:   Age on Sept 1 outside the usual range for the grade, any student over 21, or a

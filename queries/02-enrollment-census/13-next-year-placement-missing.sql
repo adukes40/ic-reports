@@ -1,7 +1,7 @@
 /* ======================================================================================
    #27  Next-year placement missing
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Enrollment & census
    Type:      Validation · Priority 1 · Run Spring, EOY
    Purpose:   Active students below grade 12 with no next-year placement, or a next grade

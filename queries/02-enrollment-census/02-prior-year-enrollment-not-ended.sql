@@ -1,7 +1,7 @@
 /* ======================================================================================
    #16  Prior-year enrollment not ended
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Enrollment & census
    Type:      Validation · Priority 1 · Run BOY
    Purpose:   Enrollments in calendars before @endYear that still have no end date.

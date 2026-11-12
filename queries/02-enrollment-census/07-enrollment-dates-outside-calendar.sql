@@ -1,7 +1,7 @@
 /* ======================================================================================
    #21  Enrollment dates outside calendar
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Enrollment & census
    Type:      Validation · Priority 2 · Run BOY, EOY
    Purpose:   Enrollments that start before the calendar starts or end after it ends.

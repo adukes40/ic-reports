@@ -1,7 +1,7 @@
 /* ======================================================================================
    #15  Overlapping primary enrollments
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Enrollment & census
    Type:      Validation · Priority 1 · Run BOY, ongoing
    Purpose:   Students with two primary enrollments whose dates overlap, shown side by side.

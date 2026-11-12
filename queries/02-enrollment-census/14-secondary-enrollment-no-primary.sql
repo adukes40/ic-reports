@@ -1,7 +1,7 @@
 /* ======================================================================================
    #28  Secondary enrollment with no primary
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Enrollment & census
    Type:      Validation · Priority 2 · Run Ongoing
    Purpose:   Active secondary or partial enrollments for students with no active primary
