@@ -1,7 +1,7 @@
 /* ======================================================================================
    #26  Active student with a graduation date
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Enrollment & census
    Type:      Validation · Priority 2 · Run Ongoing
    Purpose:   Students active today who already have a diploma date or diploma type on their

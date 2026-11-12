@@ -1,7 +1,7 @@
 /* ======================================================================================
    #17  Grade level not in calendar
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Enrollment & census
    Type:      Validation · Priority 1 · Run BOY
    Purpose:   Current-year enrollments whose grade isn't set up in that calendar and

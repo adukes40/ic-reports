@@ -1,7 +1,7 @@
 /* ======================================================================================
    #29  Very short enrollments
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Enrollment & census
    Type:      List · Priority 3 · Run Ongoing
    Purpose:   Ended enrollments this year that lasted fewer than @minDays instructional

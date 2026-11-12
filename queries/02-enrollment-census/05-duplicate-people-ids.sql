@@ -1,7 +1,7 @@
 /* ======================================================================================
    #19  Duplicate people / duplicate IDs
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Enrollment & census
    Type:      Validation · Priority 1 · Run Ongoing
    Purpose:   Same first name, last name and birthdate, plus any studentNumber or stateID

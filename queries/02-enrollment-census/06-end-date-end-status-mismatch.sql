@@ -1,7 +1,7 @@
 /* ======================================================================================
    #20  End date / end status mismatch
    --------------------------------------------------------------------------------------
-   Status:    Not run yet
+   Status:    Confirmed good
    Category:  Enrollment & census
    Type:      Validation · Priority 1 · Run Ongoing, EOY
    Purpose:   End date with no end status, end status with no end date, or a graduation end
