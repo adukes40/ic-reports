@@ -146,7 +146,7 @@ const KW = new Set("select from where join left right inner outer cross apply on
 const FN = new Set("row_number count sum max min convert cast isnull coalesce nullif ltrim rtrim datediff dateadd getdate string_agg patindex len upper lower replace".split(" "));
 
 let DATA = [], CATS = [];
-const st = { view: "home", cat: null, open: null, q: "", catQ: "", kind: "all" };
+const st = { view: "home", cat: null, open: null, q: "", catQ: "", kind: "all", sort: "name" };
 const KIND_ORDER = ["Validation", "List", "KPI", "Vendor pull"];
 const kindOf = d => (d.type || "").split(" · ")[0].trim() || "Other";
 const kindOk = d => st.kind === "all" || kindOf(d) === st.kind;
@@ -205,9 +205,16 @@ const PLURAL = { "Validation": "Validations", "List": "Lists", "KPI": "KPIs", "V
 const rank = k => KIND_ORDER.indexOf(k) + 1 || 99;
 // Vendor queries group by vendor; everything else groups by kind (Validations, Lists, KPIs).
 const groupOf = d => d.group || PLURAL[kindOf(d)] || kindOf(d);
+const byName = (a, b) => a.name.localeCompare(b.name);
+const pri = d => +((d.type.match(/Priority (\d+)/) || [])[1] || 99);
+// School-year order; a query that runs at several times sorts by its earliest one.
+const WHEN = ["boy", "sept", "weekly", "ongoing", "spring", "eoy"];
+const when = d => Math.min(99, ...((d.type.match(/Run (.+)$/) || [])[1] || "").toLowerCase().split(/,\s*/).map(w => WHEN.indexOf(w) + 1 || 99));
+const SORTS = { name: ["Name A–Z", byName], pri: ["Priority", (a, b) => pri(a) - pri(b) || byName(a, b)], when: ["When to run", (a, b) => when(a) - when(b) || byName(a, b)] };
+const sortHTML = () => `<label class="sort">Sort by <select id="sort">${Object.entries(SORTS).map(([k, [l]]) => `<option value="${k}"${st.sort === k ? " selected" : ""}>${l}</option>`).join("")}</select></label>`;
 function listHTML(items) {
-  // Groups keep their order; queries inside each group are A–Z.
-  const sorted = items.slice().sort((a, b) => (a.group || "").localeCompare(b.group || "") || rank(kindOf(a)) - rank(kindOf(b)) || a.name.localeCompare(b.name));
+  // Groups keep their order; the chosen sort orders queries inside each group.
+  const sorted = items.slice().sort((a, b) => (a.group || "").localeCompare(b.group || "") || rank(kindOf(a)) - rank(kindOf(b)) || SORTS[st.sort][1](a, b));
   const counts = {}; sorted.forEach(d => counts[groupOf(d)] = (counts[groupOf(d)] || 0) + 1);
   const many = Object.keys(counts).length > 1;
   let html = "", group = null;
@@ -231,7 +238,7 @@ function homeView() {
   }).join("");
   let res = "";
   if (st.q) {
-    res = `<p class="muted" role="status" style="margin:0">${results.length} ${results.length === 1 ? "query matches" : "queries match"} “${esc(st.q)}”</p><div class="tools">${chipsHTML(found)}</div>`;
+    res = `<p class="muted" role="status" style="margin:0">${results.length} ${results.length === 1 ? "query matches" : "queries match"} “${esc(st.q)}”</p><div class="tools">${chipsHTML(found)}${sortHTML()}</div>`;
     for (const c of CATS) {
       const inCat = results.filter(d => d.cat === c.key);
       if (inCat.length) res += `<section class="section"><h2>${esc(c.label)} <small>${inCat.length} found</small></h2>${listHTML(inCat)}</section>`;
@@ -262,7 +269,7 @@ function catView() {
     </div>
     <div class="search"><label for="cq">Search in ${esc(c.label)}</label>
       <input id="cq" class="small" type="search" placeholder="Name, table or column" value="${esc(st.catQ)}" autocomplete="off"></div>
-    <div class="tools">${chipsHTML(found)}</div>
+    <div class="tools">${chipsHTML(found)}${sortHTML()}</div>
     <section class="section">
       <h2>Queries <small>${shown.length === all.length ? all.length + " queries" : shown.length + " of " + all.length + " shown"}</small></h2>
       ${shown.length ? listHTML(shown) : `<p class="empty">${all.length ? "Nothing matches. Try fewer words or pick All." : "No queries here yet."}</p>`}
@@ -288,6 +295,7 @@ app.addEventListener("input", e => {
   if (e.target.id === "q") { st.q = e.target.value; render("q"); }
   if (e.target.id === "cq") { st.catQ = e.target.value; render("cq"); }
 });
+app.addEventListener("change", e => { if (e.target.id === "sort") { st.sort = e.target.value; render("sort"); } });
 app.addEventListener("click", e => {
   const openBtn = e.target.closest("[data-open]");
   if (openBtn) {
