@@ -8,7 +8,8 @@
               the homeroom teacher and room, to balance homerooms and answer class-size
               questions.
    Output:    One row per school, grade and homeroom section: teacher, room, section,
-              students in that grade, and the grade's total across all its homerooms
+              students in that grade, the grade's total across all its homerooms, the
+              grade's average homeroom size and the school's average homeroom size
    Tables:    SchoolYear, Section, Trial, Calendar, School, Course, Room, Roster,
               Enrollment, SectionStaffHistory, Person, Identity
    Params:    @endYear, @schoolID, @asOf  (change them in the PARAMETERS block below)
@@ -16,7 +17,9 @@
               trial. Grade is the student's primary enrollment grade on @asOf, so a
               mixed-grade homeroom shows one row per grade. Teacher is
               SectionStaffHistory.staffType = 'P' (primary) on @asOf. Students rostered
-              without a primary enrollment that day are not counted.
+              without a primary enrollment that day are not counted. Grade Avg = grade
+              total / homerooms with that grade; School Avg = school students / distinct
+              homerooms in the school.
    --------------------------------------------------------------------------------------
    HOW TO USE: copy this whole file and paste it into IC's data extract tool.
    This header is a SQL comment, so it is ignored when the query runs.
@@ -30,11 +33,12 @@ DECLARE @schoolID int  = NULL;   -- NULL = all schools
 DECLARE @asOf     date = CONVERT(date, GETDATE());
 -- ===========================================================================
 
+WITH hr AS (
 SELECT c.schoolID AS [School ID], s.name AS [School], c.endYear AS [School Year],
        e.grade AS [Grade], pt.teacher AS [Homeroom Teacher], rm.name AS [Room],
        co.name AS [Course Name], se.number AS [Section Number],
        COUNT(DISTINCT r.personID) AS [Students],
-       SUM(COUNT(DISTINCT r.personID)) OVER (PARTITION BY c.schoolID, e.grade) AS [Grade Total]
+       se.sectionID
 FROM Section se
 JOIN Trial    t ON t.trialID    = se.trialID
 JOIN Calendar c ON c.calendarID = t.calendarID
@@ -64,4 +68,19 @@ WHERE se.homeroomSection = 1
   AND (@schoolID IS NULL OR c.schoolID = @schoolID)
 GROUP BY c.schoolID, s.name, c.endYear, e.grade, pt.teacher, rm.name,
          co.name, se.number, se.sectionID
-ORDER BY s.name, e.grade, pt.teacher, se.number;
+), x AS (
+SELECT hr.*,
+       -- two DENSE_RANKs = distinct homerooms per school (COUNT DISTINCT isn't allowed OVER)
+       DENSE_RANK() OVER (PARTITION BY [School ID] ORDER BY sectionID)
+     + DENSE_RANK() OVER (PARTITION BY [School ID] ORDER BY sectionID DESC) - 1 AS schoolHomerooms
+FROM hr
+)
+SELECT [School ID], [School], [School Year], [Grade], [Homeroom Teacher], [Room],
+       [Course Name], [Section Number], [Students],
+       SUM([Students]) OVER (PARTITION BY [School ID], [Grade]) AS [Grade Total],
+       CAST(1.0 * SUM([Students]) OVER (PARTITION BY [School ID], [Grade])
+            / COUNT(*) OVER (PARTITION BY [School ID], [Grade]) AS decimal(6,1)) AS [Grade Avg],
+       CAST(1.0 * SUM([Students]) OVER (PARTITION BY [School ID])
+            / schoolHomerooms AS decimal(6,1)) AS [School Avg]
+FROM x
+ORDER BY [School], [Grade], [Homeroom Teacher], [Section Number];
