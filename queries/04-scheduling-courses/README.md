@@ -17,5 +17,6 @@ Open a query, click **Copy content** (top right of the file), and paste it into 
 | 50 | [Teacher load](09-teacher-load.sql) | Not run yet | For each primary teacher on @asOf: how many sections they teach, how many different courses (preps) and how many different students. |
 | 51 | [Course requests not entered](10-course-requests-not-entered.sql) | Not run yet | Students with a next-year enrollment who have no course requests, or fewer than @minRequests, in their next-year calendar. |
 | 52 | [Requests vs. seats](11-requests-vs-seats.sql) | Not run yet | For each course in the next-year calendars: how many students requested it, how many sections are planned and how many seats those sections hold. |
+| 139 | [Homeroom class sizes](12-homeroom-class-sizes.sql) | Needs review | How many students sit in each homeroom on @asOf, by school and grade, with the homeroom teacher and room. |
 
 [← Back to the library](../../README.md)
